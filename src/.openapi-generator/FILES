@@ -1,0 +1,14 @@
+README.md
+api/openapi.yaml
+go/api.go
+go/api_default.go
+go/api_default_service.go
+go/error.go
+go/helpers.go
+go/impl.go
+go/logger.go
+go/model_get_api_external_200_response.go
+go/model_patch_users_user_id_request.go
+go/model_post_user_request.go
+go/model_user.go
+go/routers.go
