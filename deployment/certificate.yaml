@@ -1,0 +1,14 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: cloudwp.anwski.de
+  namespace: cloudwp
+spec:
+  secretName: cloudwp-tls
+  issuerRef:
+    name: letsencrypt
+  commonName: cloudwp.anwski.de
+  dnsNames:
+  - cloudwp.anwski.de
+  - api.cloudwp.anwski.de
+  - app.cloudwp.anwski.de

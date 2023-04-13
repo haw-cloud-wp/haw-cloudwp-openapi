@@ -6,6 +6,7 @@ import (
 	"github.com/auth0/go-jwt-middleware/v2/validator"
 	openapi "github.com/scrapes/haw-cloudwp-openapi/src/go"
 	"github.com/scrapes/haw-cloudwp-openapi/src/middleware"
+	"log"
 	"net/http"
 )
 
@@ -16,14 +17,8 @@ type ApiController struct {
 func (a *ApiController) GetApiExternal(ctx context.Context) (openapi.ImplResponse, error) {
 	token := ctx.Value(jwtmiddleware.ContextKey{}).(*validator.ValidatedClaims)
 	rpns := openapi.ImplResponse{}
-	claims := token.CustomClaims.(*middleware.CustomClaims)
-
-	if !claims.HasScope("read:messages") {
-		rpns.Code = http.StatusForbidden
-		rpns.Body = `{"message":"Insufficient scope."}`
-		return rpns, nil
-	}
-
+	_ = token.CustomClaims.(*middleware.CustomClaims)
+	log.Printf("api call")
 	rpns.Code = http.StatusOK
 	rpns.Body = `{"message":"PaPing"}`
 	return rpns, nil

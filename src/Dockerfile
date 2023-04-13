@@ -1,14 +1,11 @@
 FROM golang:1.19 AS build
 WORKDIR /app
-COPY go.mod go.sum ./
+COPY . .
 RUN go mod download
-COPY go ./go
-COPY main.go .
+RUN GOOS=linux go build -o openapi .
 
-ENV CGO_ENABLED=0
-RUN CGO_ENABLED=0 GOOS=linux go build -o openapi .
-
-FROM scratch AS runtime
+FROM ubuntu:latest AS runtime
 COPY --from=build /app/openapi ./
-EXPOSE 3001/tcp
+RUN apt update && apt install --reinstall -y ca-certificates
+EXPOSE 80/tcp
 ENTRYPOINT ["./openapi"]

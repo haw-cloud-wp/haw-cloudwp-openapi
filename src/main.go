@@ -27,11 +27,11 @@ func main() {
 
 	router := openapi.NewRouter(DefaultApiController)
 	router.Use(handlers.CORS(
-		handlers.AllowedOrigins([]string{"http://localhost:3000"}),
+		handlers.AllowedOrigins([]string{"http://localhost:3000", "https://app.cloudwp.anwski.de", "https://api.cloudwp.anwski.de"}),
 		handlers.AllowCredentials(),
 		handlers.AllowedHeaders([]string{"Authorization"})))
 
 	router.Use(middleware.EnsureValidToken())
 
-	log.Fatal(http.ListenAndServe(":3001", router))
+	log.Fatal(http.ListenAndServe(":80", router))
 }

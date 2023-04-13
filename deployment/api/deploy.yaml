@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api
+  namespace: cloudwp
+  labels:
+    app: api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: api
+  template:
+    metadata:
+      labels:
+        app: api
+    spec:
+      containers:
+      - name: api
+        imagePullPolicy: Always
+        image: ghcr.io/haw-cloud-wp/haw-cloudwp-openapi:dev
+        env:
+          - name: AUTH0_DOMAIN
+            value: dev-5n5igzycxiz22p3w.us.auth0.com
+          - name: AUTH0_AUDIENCE
+            value: http://localhost:3001
+        ports:
+        - containerPort: 80
