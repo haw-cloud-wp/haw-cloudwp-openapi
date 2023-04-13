@@ -4,9 +4,11 @@ import Highlight from "../components/Highlight";
 import { useAuth0, withAuthenticationRequired } from "@auth0/auth0-react";
 import { getConfig } from "../config";
 import Loading from "../components/Loading";
+import {DefaultApi} from "cloudwpss23_openapi_cyan";
 
 export const ExternalApiComponent = () => {
   const { apiOrigin = "https://api.cloudwp.anwski.de", audience } = getConfig();
+  const apiClient = new DefaultApi("https://api.cloudwp.anwski.de");
 
   const [state, setState] = useState({
     showResult: false,
@@ -56,15 +58,15 @@ export const ExternalApiComponent = () => {
 
   const callApi = async () => {
     try {
-      const token = await getAccessTokenSilently();
+      if(apiClient.authentications["bearer"] == null){
+        apiClient.authentications["bearer"] = {
+          type: 'oauth2',
+          accessToken: await getAccessTokenSilently()
+        }
+      }
 
-      const response = await fetch(`${apiOrigin}/api/external`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      const responseData = await response.json();
+      const response = await apiClient.getApiExternal();
+      const responseData = await response.pong.apiMessage.json()
 
       setState({
         ...state,

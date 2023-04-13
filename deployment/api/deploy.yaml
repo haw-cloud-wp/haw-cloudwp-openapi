@@ -24,5 +24,7 @@ spec:
             value: dev-5n5igzycxiz22p3w.us.auth0.com
           - name: AUTH0_AUDIENCE
             value: http://localhost:3001
+          - name: CORS_ORIGINS
+            value: http://localhost:3001,https://app.cloudwp.anwski.de,https://api.cloudwp.anwski.de
         ports:
         - containerPort: 80

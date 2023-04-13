@@ -11,7 +11,6 @@ WORKDIR /app
 COPY package.json .
 
 RUN npm install -g --force npm@latest typescript@latest yarn@latest
-
 RUN yarn install
 
 COPY . .

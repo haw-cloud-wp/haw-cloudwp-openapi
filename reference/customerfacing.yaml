@@ -2,10 +2,13 @@ openapi: 3.1.0
 x-stoplight:
   id: l2iyn7fvt7fmd
 info:
-  title: customerfacing
+  title: cloudwpss23-openapi-cyan
   version: '1.0'
+  description: OpenAPI Reference für das CloudWP der HAW Hamburg für das SommerSemster 2023
 servers:
   - url: 'http://localhost:3000'
+  - url: 'https://api.cloudwp.anwski.de'
+    description: ''
 paths:
   '/users/{userId}':
     parameters:
@@ -91,6 +94,12 @@ paths:
                   lastName: Baker
                   dateOfBirth: '1985-10-02'
         description: Patch user properties to update.
+    options:
+      summary: ''
+      operationId: options-users-userId
+      responses:
+        '200':
+          description: OK
   /user:
     post:
       summary: Create New User
@@ -145,6 +154,12 @@ paths:
                   dateOfBirth: '1996-08-24'
         description: Post the necessary fields for the API to create a new user.
       description: Create a new user.
+    options:
+      summary: ''
+      operationId: options-user
+      responses:
+        '200':
+          description: OK
   /api/external:
     get:
       summary: Your GET endpoint
@@ -208,3 +223,15 @@ components:
         - lastName
         - email
         - emailVerified
+  securitySchemes:
+    bearer:
+      type: oauth2
+      flows:
+        authorizationCode:
+          authorizationUrl: ''
+          tokenUrl: ''
+          refreshUrl: ''
+          scopes: {}
+      description: ''
+security:
+  - bearer: []
