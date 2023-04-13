@@ -8,10 +8,20 @@ import (
 	"github.com/scrapes/haw-cloudwp-openapi/src/middleware"
 	"log"
 	"net/http"
+	"reflect"
 )
 
 type ApiController struct {
-	openapi.DefaultApiServicer
+}
+
+func (a *ApiController) OptionsUser(ctx context.Context) (openapi.ImplResponse, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (a *ApiController) OptionsUsersUserId(ctx context.Context, i interface{}) (openapi.ImplResponse, error) {
+	//TODO implement me
+	panic("implement me")
 }
 
 func (a *ApiController) GetApiExternal(ctx context.Context) (openapi.ImplResponse, error) {
@@ -25,8 +35,8 @@ func (a *ApiController) GetApiExternal(ctx context.Context) (openapi.ImplRespons
 }
 
 func (a *ApiController) GetUsersUserId(ctx context.Context, i interface{}) (openapi.ImplResponse, error) {
-	//TODO implement me
-	panic("implement me")
+	log.Printf(reflect.TypeOf(i).String())
+	return openapi.ImplResponse{Code: http.StatusOK, Body: `{"message":"PaPing"}`}, nil
 }
 
 func (a *ApiController) OptionsApiExternal(ctx context.Context) (openapi.ImplResponse, error) {

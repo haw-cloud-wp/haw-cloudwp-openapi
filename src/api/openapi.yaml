@@ -1,9 +1,15 @@
 openapi: 3.1.0
 info:
-  title: customerfacing
+  description: OpenAPI Reference für das CloudWP der HAW Hamburg für das SommerSemster
+    2023
+  title: cloudwpss23-openapi-cyan
   version: "1.0"
 servers:
 - url: http://localhost:3000
+- description: ""
+  url: https://api.cloudwp.anwski.de
+security:
+- bearer: []
 paths:
   /users/{userId}:
     get:
@@ -38,6 +44,20 @@ paths:
           description: User Not Found
       summary: Get User Info by User ID
       tags: []
+    options:
+      operationId: options-users-userId
+      parameters:
+      - description: Id of an existing user.
+        explode: false
+        in: path
+        name: userId
+        required: true
+        schema: {}
+        style: simple
+      responses:
+        "200":
+          description: OK
+      summary: ""
     parameters:
     - description: Id of an existing user.
       explode: false
@@ -97,6 +117,12 @@ paths:
           description: Email Already Taken
       summary: Update User Information
   /user:
+    options:
+      operationId: options-user
+      responses:
+        "200":
+          description: OK
+      summary: ""
     post:
       description: Create a new user.
       operationId: post-user
@@ -212,5 +238,15 @@ components:
         pong: ""
       properties:
         pong: {}
+  securitySchemes:
+    bearer:
+      description: ""
+      flows:
+        authorizationCode:
+          authorizationUrl: ""
+          refreshUrl: ""
+          scopes: {}
+          tokenUrl: ""
+      type: oauth2
 x-stoplight:
   id: l2iyn7fvt7fmd
