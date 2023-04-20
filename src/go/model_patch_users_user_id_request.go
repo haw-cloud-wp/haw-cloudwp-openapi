@@ -11,14 +11,14 @@ package openapi
 
 type PatchUsersUserIdRequest struct {
 
-	FirstName *interface{} `json:"firstName,omitempty"`
+	FirstName string `json:"firstName,omitempty"`
 
-	LastName *interface{} `json:"lastName,omitempty"`
+	LastName string `json:"lastName,omitempty"`
 
 	// If a new email is given, the user's email verified property will be set to false.
-	Email *interface{} `json:"email,omitempty"`
+	Email string `json:"email,omitempty"`
 
-	DateOfBirth *interface{} `json:"dateOfBirth,omitempty"`
+	DateOfBirth string `json:"dateOfBirth,omitempty"`
 }
 
 // AssertPatchUsersUserIdRequestRequired checks if the required fields are not zero-ed

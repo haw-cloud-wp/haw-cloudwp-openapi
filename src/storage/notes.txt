@@ -1,0 +1,204 @@
+
+func GcloudServeFile(w http.ResponseWriter, r *http.Request, name string) error{
+
+	// bucket := "bucket-name"
+	// object := "object-name"
+	ctx := context.Background()
+	client, err := storage.NewClient(ctx)
+	if err != nil {
+		return fmt.Errorf("storage.NewClient: %v", err)
+	}
+	defer client.Close()
+
+	ctx, cancel := context.WithTimeout(ctx, time.Second*50)
+	defer cancel()
+
+	objectHandle := client.Bucket(GcloudBucketName).Object(name)
+	rc, err := objectHandle.NewReader(ctx)
+	if err != nil {
+		return fmt.Errorf("Object(%q).NewReader: %v", name, err)
+	}
+	defer rc.Close()
+
+	attrs, err := objectHandle.Attrs(ctx)
+	if err != nil {
+		return fmt.Errorf("Object(%q).Attrs: %v", name, err)
+	}
+
+	size := attrs.Size
+
+	code := http.StatusOK
+
+	// handle Content-Range header.
+	sendSize := size
+	content := rc
+	var sendContent io.Reader = rc
+	if size >= 0 {
+		ranges, err := parseRange("", size)
+		if err != nil {
+			if err == errors.New("invalid range: failed to overlap") {
+				w.Header().Set("Content-Range", fmt.Sprintf("bytes */%d", size))
+			}
+			http.Error(w, err.Error(), http.StatusRequestedRangeNotSatisfiable)
+			return nil
+		}
+		if sumRangesSize(ranges) > size {
+			// The total number of bytes in all the ranges
+			// is larger than the size of the file by
+			// itself, so this is probably an attack, or a
+			// dumb client. Ignore the range request.
+			ranges = nil
+		}
+		switch {
+		case len(ranges) == 1:
+			// RFC 7233, Section 4.1:
+			// "If a single part is being transferred, the server
+			// generating the 206 response MUST generate a
+			// Content-Range header field, describing what range
+			// of the selected representation is enclosed, and a
+			// payload consisting of the range.
+			// ...
+			// A server MUST NOT generate a multipart response to
+			// a request for a single range, since a client that
+			// does not request multiple parts might not support
+			// multipart responses."
+			ra := ranges[0]
+			reader, err := objectHandle.NewRangeReader(ctx, ra.start, io.SeekStart)
+			if err != nil {
+				return err
+			}
+			sendSize = ra.length
+			code = http.StatusPartialContent
+			w.Header().Set("Content-Range", ra.contentRange(size))
+		case len(ranges) > 1:
+			sendSize = rangesMIMESize(ranges, ctype, size)
+			code = StatusPartialContent
+
+			pr, pw := io.Pipe()
+			mw := multipart.NewWriter(pw)
+			w.Header().Set("Content-Type", "multipart/byteranges; boundary="+mw.Boundary())
+			sendContent = pr
+			defer pr.Close() // cause writing goroutine to fail and exit if CopyN doesn't finish.
+			go func() {
+				for _, ra := range ranges {
+					part, err := mw.CreatePart(ra.mimeHeader(ctype, size))
+					if err != nil {
+						pw.CloseWithError(err)
+						return
+					}
+					if _, err := content.Seek(ra.start, io.SeekStart); err != nil {
+						pw.CloseWithError(err)
+						return
+					}
+					if _, err := io.CopyN(part, content, ra.length); err != nil {
+						pw.CloseWithError(err)
+						return
+					}
+				}
+				mw.Close()
+				pw.Close()
+			}()
+		}
+
+		w.Header().Set("Accept-Ranges", "bytes")
+		if w.Header().Get("Content-Encoding") == "" {
+			w.Header().Set("Content-Length", strconv.FormatInt(sendSize, 10))
+		}
+	}
+
+	w.WriteHeader(code)
+
+	if r.Method != "HEAD" {
+		io.CopyN(w, sendContent, sendSize)
+	}
+
+	return nil
+}
+
+// httpRange specifies the byte range to be sent to the client.
+type httpRange struct {
+	start, length int64
+}
+
+// parseRange parses a Range header string as per RFC 7233.
+// errNoOverlap is returned if none of the ranges overlap.
+func parseRange(s string, size int64) ([]httpRange, error) {
+	if s == "" {
+		return nil, nil // header not present
+	}
+	const b = "bytes="
+	if !strings.HasPrefix(s, b) {
+		return nil, errors.New("invalid range")
+	}
+	var ranges []httpRange
+	noOverlap := false
+	for _, ra := range strings.Split(s[len(b):], ",") {
+		ra = textproto.TrimString(ra)
+		if ra == "" {
+			continue
+		}
+		start, end, ok := strings.Cut(ra, "-")
+		if !ok {
+			return nil, errors.New("invalid range")
+		}
+		start, end = textproto.TrimString(start), textproto.TrimString(end)
+		var r httpRange
+		if start == "" {
+			// If no start is specified, end specifies the
+			// range start relative to the end of the file,
+			// and we are dealing with <suffix-length>
+			// which has to be a non-negative integer as per
+			// RFC 7233 Section 2.1 "Byte-Ranges".
+			if end == "" || end[0] == '-' {
+				return nil, errors.New("invalid range")
+			}
+			i, err := strconv.ParseInt(end, 10, 64)
+			if i < 0 || err != nil {
+				return nil, errors.New("invalid range")
+			}
+			if i > size {
+				i = size
+			}
+			r.start = size - i
+			r.length = size - r.start
+		} else {
+			i, err := strconv.ParseInt(start, 10, 64)
+			if err != nil || i < 0 {
+				return nil, errors.New("invalid range")
+			}
+			if i >= size {
+				// If the range begins after the size of the content,
+				// then it does not overlap.
+				noOverlap = true
+				continue
+			}
+			r.start = i
+			if end == "" {
+				// If no end is specified, range extends to end of the file.
+				r.length = size - r.start
+			} else {
+				i, err := strconv.ParseInt(end, 10, 64)
+				if err != nil || r.start > i {
+					return nil, errors.New("invalid range")
+				}
+				if i >= size {
+					i = size - 1
+				}
+				r.length = i - r.start + 1
+			}
+		}
+		ranges = append(ranges, r)
+	}
+	if noOverlap && len(ranges) == 0 {
+		// The specified ranges did not overlap with the content.
+		return nil, errors.New("invalid range: failed to overlap")
+	}
+	return ranges, nil
+}
+
+func sumRangesSize(ranges []httpRange) (size int64) {
+	for _, ra := range ranges {
+		size += ra.length
+	}
+	return
+}

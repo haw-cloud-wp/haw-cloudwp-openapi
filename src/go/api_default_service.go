@@ -13,6 +13,7 @@ import (
 	"context"
 	"errors"
 	"net/http"
+	"os"
 )
 
 // DefaultApiService is a service that implements the logic for the DefaultApiServicer
@@ -37,8 +38,30 @@ func (s *DefaultApiService) GetApiExternal(ctx context.Context) (ImplResponse, e
 	return Response(http.StatusNotImplemented, nil), errors.New("GetApiExternal method not implemented")
 }
 
+// GetFiles - Your GET endpoint
+func (s *DefaultApiService) GetFiles(ctx context.Context) (ImplResponse, error) {
+	// TODO - update GetFiles with the required logic for this service method.
+	// Add api_default_service.go to the .openapi-generator-ignore to avoid overwriting this service implementation when updating open api generation.
+
+	//TODO: Uncomment the next line to return response Response(200, GetFiles200Response{}) or use other options such as http.Ok ...
+	//return Response(200, GetFiles200Response{}), nil
+
+	return Response(http.StatusNotImplemented, nil), errors.New("GetFiles method not implemented")
+}
+
+// GetFilesName - Your GET endpoint
+func (s *DefaultApiService) GetFilesName(ctx context.Context, name string) (ImplResponse, error) {
+	// TODO - update GetFilesName with the required logic for this service method.
+	// Add api_default_service.go to the .openapi-generator-ignore to avoid overwriting this service implementation when updating open api generation.
+
+	//TODO: Uncomment the next line to return response Response(200, File{}) or use other options such as http.Ok ...
+	//return Response(200, File{}), nil
+
+	return Response(http.StatusNotImplemented, nil), errors.New("GetFilesName method not implemented")
+}
+
 // GetUsersUserId - Get User Info by User ID
-func (s *DefaultApiService) GetUsersUserId(ctx context.Context, userId interface{}) (ImplResponse, error) {
+func (s *DefaultApiService) GetUsersUserId(ctx context.Context, userId int32) (ImplResponse, error) {
 	// TODO - update GetUsersUserId with the required logic for this service method.
 	// Add api_default_service.go to the .openapi-generator-ignore to avoid overwriting this service implementation when updating open api generation.
 
@@ -51,7 +74,7 @@ func (s *DefaultApiService) GetUsersUserId(ctx context.Context, userId interface
 	return Response(http.StatusNotImplemented, nil), errors.New("GetUsersUserId method not implemented")
 }
 
-// OptionsApiExternal -
+// OptionsApiExternal - 
 func (s *DefaultApiService) OptionsApiExternal(ctx context.Context) (ImplResponse, error) {
 	// TODO - update OptionsApiExternal with the required logic for this service method.
 	// Add api_default_service.go to the .openapi-generator-ignore to avoid overwriting this service implementation when updating open api generation.
@@ -62,7 +85,40 @@ func (s *DefaultApiService) OptionsApiExternal(ctx context.Context) (ImplRespons
 	return Response(http.StatusNotImplemented, nil), errors.New("OptionsApiExternal method not implemented")
 }
 
-// OptionsUser -
+// OptionsFileUpload - 
+func (s *DefaultApiService) OptionsFileUpload(ctx context.Context) (ImplResponse, error) {
+	// TODO - update OptionsFileUpload with the required logic for this service method.
+	// Add api_default_service.go to the .openapi-generator-ignore to avoid overwriting this service implementation when updating open api generation.
+
+	//TODO: Uncomment the next line to return response Response(200, {}) or use other options such as http.Ok ...
+	//return Response(200, nil),nil
+
+	return Response(http.StatusNotImplemented, nil), errors.New("OptionsFileUpload method not implemented")
+}
+
+// OptionsFiles - 
+func (s *DefaultApiService) OptionsFiles(ctx context.Context) (ImplResponse, error) {
+	// TODO - update OptionsFiles with the required logic for this service method.
+	// Add api_default_service.go to the .openapi-generator-ignore to avoid overwriting this service implementation when updating open api generation.
+
+	//TODO: Uncomment the next line to return response Response(200, {}) or use other options such as http.Ok ...
+	//return Response(200, nil),nil
+
+	return Response(http.StatusNotImplemented, nil), errors.New("OptionsFiles method not implemented")
+}
+
+// OptionsFilesName - 
+func (s *DefaultApiService) OptionsFilesName(ctx context.Context, name string) (ImplResponse, error) {
+	// TODO - update OptionsFilesName with the required logic for this service method.
+	// Add api_default_service.go to the .openapi-generator-ignore to avoid overwriting this service implementation when updating open api generation.
+
+	//TODO: Uncomment the next line to return response Response(200, {}) or use other options such as http.Ok ...
+	//return Response(200, nil),nil
+
+	return Response(http.StatusNotImplemented, nil), errors.New("OptionsFilesName method not implemented")
+}
+
+// OptionsUser - 
 func (s *DefaultApiService) OptionsUser(ctx context.Context) (ImplResponse, error) {
 	// TODO - update OptionsUser with the required logic for this service method.
 	// Add api_default_service.go to the .openapi-generator-ignore to avoid overwriting this service implementation when updating open api generation.
@@ -73,8 +129,8 @@ func (s *DefaultApiService) OptionsUser(ctx context.Context) (ImplResponse, erro
 	return Response(http.StatusNotImplemented, nil), errors.New("OptionsUser method not implemented")
 }
 
-// OptionsUsersUserId -
-func (s *DefaultApiService) OptionsUsersUserId(ctx context.Context, userId interface{}) (ImplResponse, error) {
+// OptionsUsersUserId - 
+func (s *DefaultApiService) OptionsUsersUserId(ctx context.Context, userId int32) (ImplResponse, error) {
 	// TODO - update OptionsUsersUserId with the required logic for this service method.
 	// Add api_default_service.go to the .openapi-generator-ignore to avoid overwriting this service implementation when updating open api generation.
 
@@ -85,7 +141,7 @@ func (s *DefaultApiService) OptionsUsersUserId(ctx context.Context, userId inter
 }
 
 // PatchUsersUserId - Update User Information
-func (s *DefaultApiService) PatchUsersUserId(ctx context.Context, userId interface{}, patchUsersUserIdRequest PatchUsersUserIdRequest) (ImplResponse, error) {
+func (s *DefaultApiService) PatchUsersUserId(ctx context.Context, userId int32, patchUsersUserIdRequest PatchUsersUserIdRequest) (ImplResponse, error) {
 	// TODO - update PatchUsersUserId with the required logic for this service method.
 	// Add api_default_service.go to the .openapi-generator-ignore to avoid overwriting this service implementation when updating open api generation.
 
@@ -116,4 +172,15 @@ func (s *DefaultApiService) PostUser(ctx context.Context, postUserRequest PostUs
 	//return Response(409, nil),nil
 
 	return Response(http.StatusNotImplemented, nil), errors.New("PostUser method not implemented")
+}
+
+// PutFileUpload - 
+func (s *DefaultApiService) PutFileUpload(ctx context.Context, name string, data *os.File) (ImplResponse, error) {
+	// TODO - update PutFileUpload with the required logic for this service method.
+	// Add api_default_service.go to the .openapi-generator-ignore to avoid overwriting this service implementation when updating open api generation.
+
+	//TODO: Uncomment the next line to return response Response(200, {}) or use other options such as http.Ok ...
+	//return Response(200, nil),nil
+
+	return Response(http.StatusNotImplemented, nil), errors.New("PutFileUpload method not implemented")
 }

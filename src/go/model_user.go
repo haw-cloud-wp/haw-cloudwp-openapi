@@ -9,25 +9,24 @@
 
 package openapi
 
-// User - 
 type User struct {
 
 	// Unique identifier for the given user.
-	Id *interface{} `json:"id"`
+	Id int32 `json:"id"`
 
-	FirstName *interface{} `json:"firstName"`
+	FirstName string `json:"firstName"`
 
-	LastName *interface{} `json:"lastName"`
+	LastName string `json:"lastName"`
 
-	Email *interface{} `json:"email"`
+	Email string `json:"email"`
 
-	DateOfBirth *interface{} `json:"dateOfBirth,omitempty"`
+	DateOfBirth string `json:"dateOfBirth,omitempty"`
 
 	// Set to true if the user's email has been verified.
-	EmailVerified *interface{} `json:"emailVerified"`
+	EmailVerified bool `json:"emailVerified"`
 
 	// The date that the user was created.
-	CreateDate *interface{} `json:"createDate,omitempty"`
+	CreateDate string `json:"createDate,omitempty"`
 }
 
 // AssertUserRequired checks if the required fields are not zero-ed

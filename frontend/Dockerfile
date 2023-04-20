@@ -1,45 +1,29 @@
-FROM node:lts-alpine3.14 as build
-
-RUN apk update && \
-  apk upgrade && \
-  apk add --no-cache bash git openssh
-
+# ---------------
+# Build Yarn base image
+# ---------------
+FROM node:lts-alpine3.14 as yarn
 RUN mkdir /app
-
 WORKDIR /app
-
-COPY package.json .
-
 RUN npm install -g --force npm@latest typescript@latest yarn@latest
+
+# ---------------
+# Build Package repo
+# ---------------
+FROM yarn as repo
+COPY package.json .
 RUN yarn install
 
+# ---------------
+# Build webapp
+# ---------------
+FROM repo as build
 COPY . .
-
 RUN yarn build
 
 # ---------------
-
-FROM node:lts-alpine3.14
-
-RUN mkdir -p /app/build
-
-RUN apk update && \
-  apk upgrade && \
-  apk add git
-
-WORKDIR /app
-
-COPY --from=build /app/package.json .
-
-RUN yarn install --production
-
-COPY --from=build /app/build ./build
-COPY --from=build /app/src/auth_config.json ./src/auth_config.json
-COPY --from=build /app/server.js .
-
-EXPOSE 3000
-
-ENV SERVER_PORT=3000
-ENV NODE_ENV production
-
-CMD ["yarn", "prod"]
+# Copy in vanilla nginx image
+# ---------------
+FROM nginx:latest as server
+RUN rm /etc/nginx/conf.d/default.conf
+COPY nginx.conf /etc/nginx/conf.d
+COPY --from=build /app/build /usr/share/nginx/html

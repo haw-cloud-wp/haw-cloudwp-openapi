@@ -12,13 +12,12 @@ package main
 import (
 	"github.com/gorilla/handlers"
 	"github.com/scrapes/haw-cloudwp-openapi/src/Controller"
+	openapi "github.com/scrapes/haw-cloudwp-openapi/src/go"
 	"github.com/scrapes/haw-cloudwp-openapi/src/middleware"
 	"log"
 	"net/http"
 	"os"
 	"strings"
-
-	openapi "github.com/scrapes/haw-cloudwp-openapi/src/go"
 )
 
 func main() {
@@ -43,7 +42,7 @@ func main() {
 	}
 
 	if corsOrigins == "" {
-		corsOrigins = "http://localhost:3001,https://app.cloudwp.anwski.de,https://api.cloudwp.anwski.de"
+		corsOrigins = "http://localhost:3000,https://app.cloudwp.anwski.de,https://api.cloudwp.anwski.de"
 	}
 
 	DefaultApiService := new(Controller.ApiController)
@@ -54,7 +53,9 @@ func main() {
 	router.Use(handlers.CORS(
 		handlers.AllowedOrigins(allowedOrigins),
 		handlers.AllowCredentials(),
-		handlers.AllowedHeaders([]string{"Authorization"})))
+		handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"}),
+		handlers.AllowedMethods([]string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}),
+	))
 
 	router.Use(middleware.EnsureValidToken(auth0Domain, auth0Audience))
 

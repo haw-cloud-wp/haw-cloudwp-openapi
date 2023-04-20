@@ -12,6 +12,7 @@ package openapi
 import (
 	"context"
 	"net/http"
+	"os"
 )
 
 
@@ -21,12 +22,18 @@ import (
 // pass the data to a DefaultApiServicer to perform the required actions, then write the service results to the http response.
 type DefaultApiRouter interface { 
 	GetApiExternal(http.ResponseWriter, *http.Request)
+	GetFiles(http.ResponseWriter, *http.Request)
+	GetFilesName(http.ResponseWriter, *http.Request)
 	GetUsersUserId(http.ResponseWriter, *http.Request)
 	OptionsApiExternal(http.ResponseWriter, *http.Request)
+	OptionsFileUpload(http.ResponseWriter, *http.Request)
+	OptionsFiles(http.ResponseWriter, *http.Request)
+	OptionsFilesName(http.ResponseWriter, *http.Request)
 	OptionsUser(http.ResponseWriter, *http.Request)
 	OptionsUsersUserId(http.ResponseWriter, *http.Request)
 	PatchUsersUserId(http.ResponseWriter, *http.Request)
 	PostUser(http.ResponseWriter, *http.Request)
+	PutFileUpload(http.ResponseWriter, *http.Request)
 }
 
 
@@ -36,10 +43,16 @@ type DefaultApiRouter interface {
 // and updated with the logic required for the API.
 type DefaultApiServicer interface { 
 	GetApiExternal(context.Context) (ImplResponse, error)
-	GetUsersUserId(context.Context, interface{}) (ImplResponse, error)
+	GetFiles(context.Context) (ImplResponse, error)
+	GetFilesName(context.Context, string) (ImplResponse, error)
+	GetUsersUserId(context.Context, int32) (ImplResponse, error)
 	OptionsApiExternal(context.Context) (ImplResponse, error)
+	OptionsFileUpload(context.Context) (ImplResponse, error)
+	OptionsFiles(context.Context) (ImplResponse, error)
+	OptionsFilesName(context.Context, string) (ImplResponse, error)
 	OptionsUser(context.Context) (ImplResponse, error)
-	OptionsUsersUserId(context.Context, interface{}) (ImplResponse, error)
-	PatchUsersUserId(context.Context, interface{}, PatchUsersUserIdRequest) (ImplResponse, error)
+	OptionsUsersUserId(context.Context, int32) (ImplResponse, error)
+	PatchUsersUserId(context.Context, int32, PatchUsersUserIdRequest) (ImplResponse, error)
 	PostUser(context.Context, PostUserRequest) (ImplResponse, error)
+	PutFileUpload(context.Context, string, *os.File) (ImplResponse, error)
 }

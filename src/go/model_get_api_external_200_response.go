@@ -11,11 +11,20 @@ package openapi
 
 type GetApiExternal200Response struct {
 
-	Pong *interface{} `json:"pong,omitempty"`
+	Pong string `json:"pong"`
 }
 
 // AssertGetApiExternal200ResponseRequired checks if the required fields are not zero-ed
 func AssertGetApiExternal200ResponseRequired(obj GetApiExternal200Response) error {
+	elements := map[string]interface{}{
+		"pong": obj.Pong,
+	}
+	for name, el := range elements {
+		if isZero := IsZeroValue(el); isZero {
+			return &RequiredError{Field: name}
+		}
+	}
+
 	return nil
 }
 

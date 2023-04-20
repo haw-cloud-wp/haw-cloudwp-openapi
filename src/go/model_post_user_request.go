@@ -11,13 +11,13 @@ package openapi
 
 type PostUserRequest struct {
 
-	FirstName *interface{} `json:"firstName"`
+	FirstName string `json:"firstName"`
 
-	LastName *interface{} `json:"lastName"`
+	LastName string `json:"lastName"`
 
-	Email *interface{} `json:"email"`
+	Email string `json:"email"`
 
-	DateOfBirth *interface{} `json:"dateOfBirth"`
+	DateOfBirth string `json:"dateOfBirth"`
 }
 
 // AssertPostUserRequestRequired checks if the required fields are not zero-ed

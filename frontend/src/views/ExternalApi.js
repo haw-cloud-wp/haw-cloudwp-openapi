@@ -4,16 +4,25 @@ import Highlight from "../components/Highlight";
 import { useAuth0, withAuthenticationRequired } from "@auth0/auth0-react";
 import { getConfig } from "../config";
 import Loading from "../components/Loading";
-import {DefaultApi} from "cloudwpss23_openapi_cyan";
+import * as CyanAPI from "ts-cloudwpss23-openapi-cyan";
+import * as $ from 'jquery';
+import {User} from "ts-cloudwpss23-openapi-cyan";
+import { useFilePicker } from 'use-file-picker';
 
 export const ExternalApiComponent = () => {
   const { apiOrigin = "https://api.cloudwp.anwski.de", audience } = getConfig();
-  const apiClient = new DefaultApi("https://api.cloudwp.anwski.de");
+  const api = new CyanAPI.DefaultApi("https://openapi-asog6d6nbq-ez.a.run.app");
+  const [openFileSelector, { filesContent, loading, plainFiles }] = useFilePicker({
+    accept: 'image/*'
+  });
 
   const [state, setState] = useState({
     showResult: false,
     apiMessage: "",
     error: null,
+    showFiles: false,
+    bucket: "",
+    files: []
   });
 
   const {
@@ -58,21 +67,16 @@ export const ExternalApiComponent = () => {
 
   const callApi = async () => {
     try {
-      if(apiClient.authentications["bearer"] == null){
-        apiClient.authentications["bearer"] = {
-          type: 'oauth2',
-          accessToken: await getAccessTokenSilently()
-        }
-      }
-
-      const response = await apiClient.getApiExternal();
-      const responseData = await response.pong.apiMessage.json()
-
-      setState({
-        ...state,
-        showResult: true,
-        apiMessage: responseData,
-      });
+      let prom = api.getUsersUserId(100);
+      $.when(prom).then(function (status){
+        let body: User = status.body;
+        console.log(body.name);
+        setState({
+          ...state,
+          showResult: true,
+          apiMessage: body,
+        });
+      })
     } catch (error) {
       setState({
         ...state,
@@ -86,6 +90,20 @@ export const ExternalApiComponent = () => {
     fn();
   };
 
+  getAccessTokenSilently().then(function (token){
+    api.configuration.accessToken = token
+    if(!state.showFiles) {
+      $.when(api.getFiles()).then(function (status) {
+        let response: CyanAPI.GetFiles200Response = status.body;
+        setState({
+          ...state,
+          showFiles: true,
+          bucket: response.bucket,
+          files: response.files
+        });
+      });
+    }
+  })
   return (
     <>
       <div className="mb-5">
@@ -115,10 +133,24 @@ export const ExternalApiComponent = () => {
           </Alert>
         )}
 
+
+
         <h1>External API</h1>
         <p className="lead">
           Ping an external API by clicking the button below.
         </p>
+
+        {state.showFiles && (
+            <div>
+              <h2>External API</h2>
+              <p className="lead">
+                List of { state.bucket } Bucket files
+              </p>
+              {state.files.map(function (name) {
+                  return <p>{name}</p>
+              })}
+            </div>
+        )}
 
         <p>
           This will call a local API on port 3001 that would have been started
@@ -181,6 +213,42 @@ export const ExternalApiComponent = () => {
         >
           Ping API
         </Button>
+        <br/>
+        <Button
+            color="primary"
+            className="mt-5"
+            onClick={() => {
+              try {
+                const result = openFileSelector();
+              } catch (err) {
+                console.log(err);
+                console.log('Something went wrong or validation failed');
+              }
+            }}
+            disabled={!audience}
+        >
+          Select File
+        </Button>
+        <br />
+        {plainFiles.map((file, index) => (
+            <div>
+              <h2>{file.name}</h2>
+              <Button
+                  color="primary"
+                  className="mt-5"
+                  onClick={() => {
+                    console.log(file.size);
+                    $.when(api.putFileUpload(file.name, file)).then(function (status){
+                      console.log(status)
+                    })
+                  }}
+                  disabled={!audience}
+              >
+                Upload File
+              </Button>
+              <br />
+            </div>
+        ))}
       </div>
 
       <div className="result-block-container">

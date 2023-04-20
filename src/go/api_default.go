@@ -57,6 +57,18 @@ func (c *DefaultApiController) Routes() Routes {
 			c.GetApiExternal,
 		},
 		{
+			"GetFiles",
+			strings.ToUpper("Get"),
+			"/files",
+			c.GetFiles,
+		},
+		{
+			"GetFilesName",
+			strings.ToUpper("Get"),
+			"/files/{name}",
+			c.GetFilesName,
+		},
+		{
 			"GetUsersUserId",
 			strings.ToUpper("Get"),
 			"/users/{userId}",
@@ -67,6 +79,24 @@ func (c *DefaultApiController) Routes() Routes {
 			strings.ToUpper("Options"),
 			"/api/external",
 			c.OptionsApiExternal,
+		},
+		{
+			"OptionsFileUpload",
+			strings.ToUpper("Options"),
+			"/file/upload",
+			c.OptionsFileUpload,
+		},
+		{
+			"OptionsFiles",
+			strings.ToUpper("Options"),
+			"/files",
+			c.OptionsFiles,
+		},
+		{
+			"OptionsFilesName",
+			strings.ToUpper("Options"),
+			"/files/{name}",
+			c.OptionsFilesName,
 		},
 		{
 			"OptionsUser",
@@ -92,6 +122,12 @@ func (c *DefaultApiController) Routes() Routes {
 			"/user",
 			c.PostUser,
 		},
+		{
+			"PutFileUpload",
+			strings.ToUpper("Put"),
+			"/file/upload",
+			c.PutFileUpload,
+		},
 	}
 }
 
@@ -108,11 +144,44 @@ func (c *DefaultApiController) GetApiExternal(w http.ResponseWriter, r *http.Req
 
 }
 
+// GetFiles - Your GET endpoint
+func (c *DefaultApiController) GetFiles(w http.ResponseWriter, r *http.Request) {
+	result, err := c.service.GetFiles(r.Context())
+	// If an error occurred, encode the error with the status code
+	if err != nil {
+		c.errorHandler(w, r, err, &result)
+		return
+	}
+	// If no error, encode the body and the result code
+	EncodeJSONResponse(result.Body, &result.Code, w)
+
+}
+
+// GetFilesName - Your GET endpoint
+func (c *DefaultApiController) GetFilesName(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	nameParam := params["name"]
+	
+	result, err := c.service.GetFilesName(r.Context(), nameParam)
+	// If an error occurred, encode the error with the status code
+	if err != nil {
+		c.errorHandler(w, r, err, &result)
+		return
+	}
+	// If no error, encode the body and the result code
+	EncodeJSONResponse(result.Body, &result.Code, w)
+
+}
+
 // GetUsersUserId - Get User Info by User ID
 func (c *DefaultApiController) GetUsersUserId(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
-	userIdParam := params["userId"]
-	
+	userIdParam, err := parseInt32Parameter(params["userId"], true)
+	if err != nil {
+		c.errorHandler(w, r, &ParsingError{Err: err}, nil)
+		return
+	}
+
 	result, err := c.service.GetUsersUserId(r.Context(), userIdParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
@@ -127,6 +196,48 @@ func (c *DefaultApiController) GetUsersUserId(w http.ResponseWriter, r *http.Req
 // OptionsApiExternal - 
 func (c *DefaultApiController) OptionsApiExternal(w http.ResponseWriter, r *http.Request) {
 	result, err := c.service.OptionsApiExternal(r.Context())
+	// If an error occurred, encode the error with the status code
+	if err != nil {
+		c.errorHandler(w, r, err, &result)
+		return
+	}
+	// If no error, encode the body and the result code
+	EncodeJSONResponse(result.Body, &result.Code, w)
+
+}
+
+// OptionsFileUpload - 
+func (c *DefaultApiController) OptionsFileUpload(w http.ResponseWriter, r *http.Request) {
+	result, err := c.service.OptionsFileUpload(r.Context())
+	// If an error occurred, encode the error with the status code
+	if err != nil {
+		c.errorHandler(w, r, err, &result)
+		return
+	}
+	// If no error, encode the body and the result code
+	EncodeJSONResponse(result.Body, &result.Code, w)
+
+}
+
+// OptionsFiles - 
+func (c *DefaultApiController) OptionsFiles(w http.ResponseWriter, r *http.Request) {
+	result, err := c.service.OptionsFiles(r.Context())
+	// If an error occurred, encode the error with the status code
+	if err != nil {
+		c.errorHandler(w, r, err, &result)
+		return
+	}
+	// If no error, encode the body and the result code
+	EncodeJSONResponse(result.Body, &result.Code, w)
+
+}
+
+// OptionsFilesName - 
+func (c *DefaultApiController) OptionsFilesName(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	nameParam := params["name"]
+	
+	result, err := c.service.OptionsFilesName(r.Context(), nameParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)
@@ -153,8 +264,12 @@ func (c *DefaultApiController) OptionsUser(w http.ResponseWriter, r *http.Reques
 // OptionsUsersUserId - 
 func (c *DefaultApiController) OptionsUsersUserId(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
-	userIdParam := params["userId"]
-	
+	userIdParam, err := parseInt32Parameter(params["userId"], true)
+	if err != nil {
+		c.errorHandler(w, r, &ParsingError{Err: err}, nil)
+		return
+	}
+
 	result, err := c.service.OptionsUsersUserId(r.Context(), userIdParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
@@ -169,8 +284,12 @@ func (c *DefaultApiController) OptionsUsersUserId(w http.ResponseWriter, r *http
 // PatchUsersUserId - Update User Information
 func (c *DefaultApiController) PatchUsersUserId(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
-	userIdParam := params["userId"]
-	
+	userIdParam, err := parseInt32Parameter(params["userId"], true)
+	if err != nil {
+		c.errorHandler(w, r, &ParsingError{Err: err}, nil)
+		return
+	}
+
 	patchUsersUserIdRequestParam := PatchUsersUserIdRequest{}
 	d := json.NewDecoder(r.Body)
 	d.DisallowUnknownFields()
@@ -207,6 +326,30 @@ func (c *DefaultApiController) PostUser(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 	result, err := c.service.PostUser(r.Context(), postUserRequestParam)
+	// If an error occurred, encode the error with the status code
+	if err != nil {
+		c.errorHandler(w, r, err, &result)
+		return
+	}
+	// If no error, encode the body and the result code
+	EncodeJSONResponse(result.Body, &result.Code, w)
+
+}
+
+// PutFileUpload - 
+func (c *DefaultApiController) PutFileUpload(w http.ResponseWriter, r *http.Request) {
+	if err := r.ParseMultipartForm(32 << 20); err != nil {
+		c.errorHandler(w, r, &ParsingError{Err: err}, nil)
+		return
+	}
+				nameParam := r.FormValue("name")
+	
+	dataParam, err := ReadFormFileToTempFile(r, "data")
+	if err != nil {
+		c.errorHandler(w, r, &ParsingError{Err: err}, nil)
+		return
+	}
+			result, err := c.service.PutFileUpload(r.Context(), nameParam, dataParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)
