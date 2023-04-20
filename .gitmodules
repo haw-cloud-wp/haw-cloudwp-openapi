@@ -1,0 +1,3 @@
+[submodule "ts-cloudwpss23-openapi-cyan"]
+	path = ts-cloudwpss23-openapi-cyan
+	url = git@github.com:haw-cloud-wp/ts-cloudwpss23-openapi-cyan.git
