@@ -10,8 +10,10 @@ import {User} from "ts-cloudwpss23-openapi-cyan";
 import { useFilePicker } from 'use-file-picker';
 
 export const ExternalApiComponent = () => {
+  const publicApi = "https://openapi-asog6d6nbq-ez.a.run.app";
+  const stageApi = "http://localhost"
   const { apiOrigin = "https://api.cloudwp.anwski.de", audience } = getConfig();
-  const api = new CyanAPI.DefaultApi("https://openapi-asog6d6nbq-ez.a.run.app");
+  const api = new CyanAPI.DefaultApi(stageApi);
   const [openFileSelector, { filesContent, loading, plainFiles }] = useFilePicker({
     accept: 'image/*'
   });

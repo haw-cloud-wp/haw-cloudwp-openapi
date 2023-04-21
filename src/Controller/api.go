@@ -4,13 +4,17 @@ import (
 	"context"
 	jwtmiddleware "github.com/auth0/go-jwt-middleware/v2"
 	"github.com/auth0/go-jwt-middleware/v2/validator"
+	"github.com/scrapes/haw-cloudwp-openapi/src/commons"
 	openapi "github.com/scrapes/haw-cloudwp-openapi/src/go"
 	"github.com/scrapes/haw-cloudwp-openapi/src/middleware"
 	"github.com/scrapes/haw-cloudwp-openapi/src/storage"
+	"github.com/scrapes/haw-cloudwp-openapi/src/utils"
 	"log"
 	"net/http"
 	"os"
 )
+
+const gcloudDefaultBucket = "customer_bucker"
 
 type ApiController struct {
 }
@@ -26,15 +30,17 @@ func (a *ApiController) OptionsFilesName(ctx context.Context, s string) (openapi
 }
 
 func (a *ApiController) GetFiles(ctx context.Context) (openapi.ImplResponse, error) {
-	files, err := storage.GcloudListFiles()
+	gstorage := new(storage.GCloudStorage).Init(new(commons.AllowAllPermission))
+	bucket := new(commons.Bucket).Init(gstorage, gcloudDefaultBucket)
+	err, files := bucket.GetObjects()
 	if err != nil {
 		return openapi.ImplResponse{}, err
 	}
 	response := openapi.GetFiles200Response{
-		Bucket: storage.GcloudBucketName,
-		Files:  files,
+		Bucket: bucket.GetName(),
+		Files:  utils.Map(files, commons.IObject.GetName),
 	}
-	
+
 	return openapi.ImplResponse{
 		Code: http.StatusOK,
 		Body: response,
@@ -59,13 +65,18 @@ func (a *ApiController) PutFileUpload(ctx context.Context, s string, file *os.Fi
 		return openapi.ImplResponse{}, err
 	}
 
-	err = storage.GcloudUploadFile(f, s)
+	gstorage := new(storage.GCloudStorage).Init(new(commons.AllowAllPermission))
+	bucket := new(commons.Bucket).Init(gstorage, gcloudDefaultBucket)
+	obj := new(commons.Object).Init(bucket, s)
+	err = obj.Set(f)
+
 	if err != nil {
 		return openapi.ImplResponse{
 			Code: http.StatusInternalServerError,
 			Body: nil,
 		}, err
 	}
+
 	return openapi.ImplResponse{
 		Code: http.StatusOK,
 		Body: nil,
@@ -121,7 +132,6 @@ func (a *ApiController) OptionsUser(ctx context.Context) (openapi.ImplResponse, 
 		Body: nil,
 	}, nil
 }
-
 
 func (a *ApiController) GetApiExternal(ctx context.Context) (openapi.ImplResponse, error) {
 	token := ctx.Value(jwtmiddleware.ContextKey{}).(*validator.ValidatedClaims)

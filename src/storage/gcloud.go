@@ -4,6 +4,7 @@ import (
 	"cloud.google.com/go/storage"
 	"context"
 	"fmt"
+	"github.com/scrapes/haw-cloudwp-openapi/src/commons"
 	"google.golang.org/api/iterator"
 	"io"
 	"log"
@@ -11,14 +12,68 @@ import (
 	"time"
 )
 
-const(
-	gcloudProjectId  = "subtle-digit-382316"
-	GcloudBucketName = "customer_bucker"
-)
+type GCloudStorage struct {
+	permissions commons.IPermission
+}
 
-func GcloudUploadFile(file *os.File, object string) error {
+func (G *GCloudStorage) Init(permissions commons.IPermission) commons.IStorage {
+	G.permissions = permissions
+	return G
+}
+
+func (G *GCloudStorage) DeleteBucket(bucket commons.IBucket) error {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (G *GCloudStorage) CreateBucket(name string) (error, commons.IBucket) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (G *GCloudStorage) GetObjects(bucket commons.IBucket) (error, []commons.IObject) {
 	// bucket := "bucket-name"
-	// object := "object-name"
+	ctx := context.Background()
+	client, err := storage.NewClient(ctx)
+	if err != nil {
+		return fmt.Errorf("storage.NewClient: %v", err), nil
+	}
+	defer client.Close()
+
+	ctx, cancel := context.WithTimeout(ctx, time.Second*10)
+	defer cancel()
+
+	it := client.Bucket(bucket.GetName()).Objects(ctx, nil)
+	var objects []commons.IObject
+	for {
+		attrs, err := it.Next()
+		if err == iterator.Done {
+			break
+		}
+		if err != nil {
+			return fmt.Errorf("Bucket(%q).Objects: %v", bucket.GetName(), err), nil
+		}
+		objects = append(objects, new(commons.Object).Init(bucket, attrs.Name))
+	}
+	return nil, objects
+}
+
+func (G *GCloudStorage) DeleteObject(bucket commons.IBucket, object commons.IObject) error {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (G *GCloudStorage) GetObjectStream(bucket commons.IBucket, object commons.IObject) (error, *io.Reader) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (G *GCloudStorage) GetObject(bucket commons.IBucket, object commons.IObject) (error, *os.File) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (G *GCloudStorage) SetObject(bucket commons.IBucket, object commons.IObject, data *os.File) error {
 	ctx := context.Background()
 	client, err := storage.NewClient(ctx)
 	if err != nil {
@@ -29,24 +84,12 @@ func GcloudUploadFile(file *os.File, object string) error {
 	ctx, cancel := context.WithTimeout(ctx, time.Second*50)
 	defer cancel()
 
-	o := client.Bucket(GcloudBucketName).Object(object)
+	o := client.Bucket(bucket.GetName()).Object(object.GetName())
 
-	// Optional: set a generation-match precondition to avoid potential race
-	// conditions and data corruptions. The request to upload is aborted if the
-	// object's generation number does not match your precondition.
-	// For an object that does not yet exist, set the DoesNotExist precondition.
-	o = o.If(storage.Conditions{DoesNotExist: true})
-	// If the live object already exists in your bucket, set instead a
-	// generation-match precondition using the live object's generation number.
-	// attrs, err := o.Attrs(ctx)
-	// if err != nil {
-	//      return fmt.Errorf("object.Attrs: %v", err)
-	// }
-	// o = o.If(storage.Conditions{GenerationMatch: attrs.Generation})
+	o = o.If(storage.Conditions{DoesNotExist: false})
 
-	// Upload an object with storage.Writer.
 	wc := o.NewWriter(ctx)
-	if _, err = io.Copy(wc, file); err != nil {
+	if _, err = io.Copy(wc, data); err != nil {
 		return fmt.Errorf("io.Copy: %v", err)
 	}
 	if err := wc.Close(); err != nil {
@@ -56,29 +99,6 @@ func GcloudUploadFile(file *os.File, object string) error {
 	return nil
 }
 
-func GcloudListFiles()([]string, error ) {
-	// bucket := "bucket-name"
-	ctx := context.Background()
-	client, err := storage.NewClient(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("storage.NewClient: %v", err)
-	}
-	defer client.Close()
-
-	ctx, cancel := context.WithTimeout(ctx, time.Second*10)
-	defer cancel()
-
-	it := client.Bucket(GcloudBucketName).Objects(ctx, nil)
-	var names []string
-	for {
-		attrs, err := it.Next()
-		if err == iterator.Done {
-			break
-		}
-		if err != nil {
-			return nil, fmt.Errorf("Bucket(%q).Objects: %v", GcloudBucketName, err)
-		}
-		names = append(names, attrs.Name)
-	}
-	return names, nil
+func (G *GCloudStorage) GetPermission(permission string) bool {
+	return G.permissions.HasPermission(permission)
 }
