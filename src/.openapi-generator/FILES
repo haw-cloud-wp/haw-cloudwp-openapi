@@ -8,6 +8,7 @@ go/helpers.go
 go/impl.go
 go/logger.go
 go/model_file.go
+go/model_file_info.go
 go/model_get_api_external_200_response.go
 go/model_get_files_200_response.go
 go/model_patch_users_user_id_request.go

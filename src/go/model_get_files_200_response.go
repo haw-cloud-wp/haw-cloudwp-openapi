@@ -13,11 +13,16 @@ type GetFiles200Response struct {
 
 	Bucket string `json:"bucket,omitempty"`
 
-	Files []string `json:"files,omitempty"`
+	Files []FileInfo `json:"files,omitempty"`
 }
 
 // AssertGetFiles200ResponseRequired checks if the required fields are not zero-ed
 func AssertGetFiles200ResponseRequired(obj GetFiles200Response) error {
+	for _, el := range obj.Files {
+		if err := AssertFileInfoRequired(el); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 

@@ -14,11 +14,38 @@ import (
 
 type GCloudStorage struct {
 	permissions commons.IPermission
+	ctx         context.Context
+	client      *storage.Client
 }
 
 func (G *GCloudStorage) Init(permissions commons.IPermission) commons.IStorage {
 	G.permissions = permissions
+	G.ctx = context.Background()
+	var err error
+	G.client, err = storage.NewClient(G.ctx)
+	if err != nil {
+		fmt.Print(fmt.Errorf("storage.NewClient: %v", err))
+	}
 	return G
+}
+
+func (G *GCloudStorage) Close() error {
+	err := G.client.Close()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (G *GCloudStorage) GetObjectSize(bucket commons.IBucket, object commons.IObject) (error, int64) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (G *GCloudStorage) GetObjectLastMod(bucket commons.IBucket, object commons.IObject) (error, time.Time) {
+	//TODO implement me
+	panic("implement me")
 }
 
 func (G *GCloudStorage) DeleteBucket(bucket commons.IBucket) error {
@@ -31,20 +58,13 @@ func (G *GCloudStorage) CreateBucket(name string) (error, commons.IBucket) {
 	panic("implement me")
 }
 
-func (G *GCloudStorage) GetObjects(bucket commons.IBucket) (error, []commons.IObject) {
+func (G *GCloudStorage) GetObjects(bucket commons.IBucket) (error, []commons.IObjectInfo) {
 	// bucket := "bucket-name"
-	ctx := context.Background()
-	client, err := storage.NewClient(ctx)
-	if err != nil {
-		return fmt.Errorf("storage.NewClient: %v", err), nil
-	}
-	defer client.Close()
-
-	ctx, cancel := context.WithTimeout(ctx, time.Second*10)
+	ctx, cancel := context.WithTimeout(G.ctx, time.Second*10)
 	defer cancel()
 
-	it := client.Bucket(bucket.GetName()).Objects(ctx, nil)
-	var objects []commons.IObject
+	it := G.client.Bucket(bucket.GetName()).Objects(ctx, nil)
+	var objects []commons.IObjectInfo
 	for {
 		attrs, err := it.Next()
 		if err == iterator.Done {
@@ -53,7 +73,7 @@ func (G *GCloudStorage) GetObjects(bucket commons.IBucket) (error, []commons.IOb
 		if err != nil {
 			return fmt.Errorf("Bucket(%q).Objects: %v", bucket.GetName(), err), nil
 		}
-		objects = append(objects, new(commons.Object).Init(bucket, attrs.Name))
+		objects = append(objects, new(commons.ObjectInfo).Init(attrs.Name, attrs.Size, attrs.Updated))
 	}
 	return nil, objects
 }
@@ -86,7 +106,7 @@ func (G *GCloudStorage) SetObject(bucket commons.IBucket, object commons.IObject
 
 	o := client.Bucket(bucket.GetName()).Object(object.GetName())
 
-	o = o.If(storage.Conditions{DoesNotExist: false})
+	o = o.If(storage.Conditions{DoesNotExist: true})
 
 	wc := o.NewWriter(ctx)
 	if _, err = io.Copy(wc, data); err != nil {

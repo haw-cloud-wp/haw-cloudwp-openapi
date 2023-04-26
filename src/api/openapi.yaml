@@ -308,6 +308,24 @@ components:
       type: object
       x-stoplight:
         id: v3bkspnm47zj8
+    FileInfo:
+      example:
+        size: 0
+        name: name
+        lastmod: 2000-01-23T04:56:07.000+00:00
+      properties:
+        name:
+          type: string
+        size:
+          format: int64
+          type: integer
+        lastmod:
+          format: date-time
+          type: string
+      title: FileInfo
+      type: object
+      x-stoplight:
+        id: 1li8v06fqrcaw
     patch_users_userId_request:
       properties:
         firstName:
@@ -351,14 +369,18 @@ components:
       example:
         bucket: bucket
         files:
-        - files
-        - files
+        - size: 0
+          name: name
+          lastmod: 2000-01-23T04:56:07.000+00:00
+        - size: 0
+          name: name
+          lastmod: 2000-01-23T04:56:07.000+00:00
       properties:
         bucket:
           type: string
         files:
           items:
-            type: string
+            $ref: '#/components/schemas/FileInfo'
           type: array
       type: object
   securitySchemes:

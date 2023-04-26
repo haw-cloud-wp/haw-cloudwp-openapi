@@ -33,12 +33,22 @@ func (a *ApiController) GetFiles(ctx context.Context) (openapi.ImplResponse, err
 	gstorage := new(storage.GCloudStorage).Init(new(commons.AllowAllPermission))
 	bucket := new(commons.Bucket).Init(gstorage, gcloudDefaultBucket)
 	err, files := bucket.GetObjects()
+
+	_, cc := middleware.GetToken(ctx)
+	log.Println("HasScope: ", cc.HasScope("access:bucket_ZZZ"))
+
 	if err != nil {
 		return openapi.ImplResponse{}, err
 	}
 	response := openapi.GetFiles200Response{
 		Bucket: bucket.GetName(),
-		Files:  utils.Map(files, commons.IObject.GetName),
+		Files: utils.Map(files, func(o commons.IObjectInfo) openapi.FileInfo {
+			return openapi.FileInfo{
+				Name:    o.GetName(),
+				Size:    o.GetSize(),
+				Lastmod: o.GetLastMod(),
+			}
+		}),
 	}
 
 	return openapi.ImplResponse{
@@ -62,6 +72,7 @@ func (a *ApiController) OptionsFileUpload(ctx context.Context) (openapi.ImplResp
 func (a *ApiController) PutFileUpload(ctx context.Context, s string, file *os.File) (openapi.ImplResponse, error) {
 	f, err := os.Open(file.Name())
 	if err != nil {
+		log.Println(err)
 		return openapi.ImplResponse{}, err
 	}
 
@@ -71,6 +82,7 @@ func (a *ApiController) PutFileUpload(ctx context.Context, s string, file *os.Fi
 	err = obj.Set(f)
 
 	if err != nil {
+		log.Println(err)
 		return openapi.ImplResponse{
 			Code: http.StatusInternalServerError,
 			Body: nil,
@@ -79,7 +91,9 @@ func (a *ApiController) PutFileUpload(ctx context.Context, s string, file *os.Fi
 
 	return openapi.ImplResponse{
 		Code: http.StatusOK,
-		Body: nil,
+		Body: struct {
+			Message string
+		}{"Successfully Uploaded"},
 	}, nil
 }
 func (a *ApiController) OptionsApiExternal(ctx context.Context) (openapi.ImplResponse, error) {

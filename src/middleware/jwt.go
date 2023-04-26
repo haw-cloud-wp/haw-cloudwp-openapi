@@ -24,6 +24,12 @@ func (c CustomClaims) Validate(ctx context.Context) error {
 	return nil
 }
 
+func GetToken(ctx context.Context) (*validator.ValidatedClaims, *CustomClaims) {
+	token := ctx.Value(jwtmiddleware.ContextKey{}).(*validator.ValidatedClaims)
+	claims := token.CustomClaims.(*CustomClaims)
+	return token, claims
+}
+
 // HasScope checks whether our claims have a specific scope.
 func (c CustomClaims) HasScope(expectedScope string) bool {
 	result := strings.Split(c.Scope, " ")
@@ -32,8 +38,18 @@ func (c CustomClaims) HasScope(expectedScope string) bool {
 			return true
 		}
 	}
-
 	return false
+}
+
+func (c CustomClaims) SearchScopes(tosearch string) []string {
+	var result []string
+	scopes := strings.Split(c.Scope, " ")
+	for _, scope := range scopes {
+		if strings.Contains(scope, tosearch) {
+			result = append(result, scope)
+		}
+	}
+	return result
 }
 
 // EnsureValidToken is a middleware that will check the validity of our JWT.
