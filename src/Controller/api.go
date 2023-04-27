@@ -34,9 +34,7 @@ func (a *ApiController) GetFiles(ctx context.Context) (openapi.ImplResponse, err
 	bucket := new(commons.Bucket).Init(gstorage, gcloudDefaultBucket)
 	err, files := bucket.GetObjects()
 
-	_, cc := middleware.GetToken(ctx)
-	log.Println("HasScope: ", cc.HasScope("access:bucket_ZZZ"))
-
+	token, cc := middleware.GetToken(ctx)
 	if err != nil {
 		return openapi.ImplResponse{}, err
 	}

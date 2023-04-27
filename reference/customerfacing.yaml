@@ -224,7 +224,7 @@ paths:
                   files:
                     type: array
                     items:
-                      type: string
+                      $ref: '#/components/schemas/FileInfo'
       operationId: get-files
       security:
         - bearer: []
@@ -305,6 +305,20 @@ components:
         data:
           type: string
           format: binary
+    FileInfo:
+      title: FileInfo
+      x-stoplight:
+        id: 1li8v06fqrcaw
+      type: object
+      properties:
+        name:
+          type: string
+        size:
+          type: integer
+          format: int64
+        lastmod:
+          type: string
+          format: date-time
   securitySchemes:
     bearer:
       type: oauth2
