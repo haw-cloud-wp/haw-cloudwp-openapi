@@ -3,8 +3,18 @@ package service
 import (
 	"context"
 	openapi "github.com/scrapes/haw-cloudwp-openapi/src/v1/go"
+	"net/http"
 	"os"
 )
+
+func GetInternalServerError(err error) (openapi.ImplResponse, error) {
+	return openapi.ImplResponse{
+		Code: http.StatusInternalServerError,
+		Body: struct {
+			Error string
+		}{Error: err.Error()},
+	}, err
+}
 
 type V1Service struct {
 }
