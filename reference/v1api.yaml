@@ -1,0 +1,246 @@
+openapi: 3.0.0
+x-stoplight:
+  id: l2iyn7fvt7fmd
+info:
+  title: cloudwpss23-openapi-cyan
+  version: '1.0'
+  description: OpenAPI Reference für das CloudWP der HAW Hamburg für das SommerSemster 2023
+servers:
+  - url: 'http://localhost:3000'
+  - url: 'https://api.cloudwp.anwski.de'
+    description: ''
+paths:
+  /v1/Buckets:
+    get:
+      summary: Your GET endpoint
+      tags: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Bucket'
+      operationId: get-v1-Buckets
+    options:
+      summary: ''
+      operationId: options-v1-Buckets
+      responses:
+        '200':
+          description: OK
+  '/v1/Bucket/{name}':
+    parameters:
+      - $ref: '#/components/parameters/BucketName'
+    get:
+      summary: Your GET endpoint
+      tags: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BucketInfo'
+        '404':
+          description: Not Found
+      operationId: get-v1-Bucket-name
+    post:
+      summary: ''
+      operationId: post-v1-Bucket-name
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BucketInfo'
+        '400':
+          description: Bad Request
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+    delete:
+      summary: ''
+      operationId: delete-v1-Bucket-name
+      responses:
+        '200':
+          description: OK
+    options:
+      summary: ''
+      operationId: options-v1-Bucket-name
+      responses:
+        '200':
+          description: OK
+    patch:
+      summary: ''
+      operationId: patch-v1-Bucket-name
+      responses:
+        '200':
+          description: OK
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+      description: Set permissions of bucket
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/Permission'
+  '/v1/Bucket/{name}/Files':
+    get:
+      summary: Your GET endpoint
+      tags: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FileInfo'
+      operationId: get-v1-Files
+    options:
+      summary: ''
+      operationId: options-v1-Files
+      responses:
+        '200':
+          description: OK
+    parameters:
+      - $ref: '#/components/parameters/BucketName'
+  '/v1/Bucket/{bucketname}/File/{filename}':
+    parameters:
+      - $ref: '#/components/parameters/BucketName'
+      - $ref: '#/components/parameters/FileName'
+    get:
+      summary: Your GET endpoint
+      tags: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+                format: binary
+      operationId: get-v1-File-name
+    options:
+      summary: ''
+      operationId: options-v1-File-name
+      responses:
+        '200':
+          description: OK
+    put:
+      summary: ''
+      operationId: put-v1-File-name
+      responses:
+        '200':
+          description: OK
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                data:
+                  type: string
+                  format: binary
+    delete:
+      summary: ''
+      operationId: delete-v1-File-name
+      responses:
+        '200':
+          description: OK
+      description: ''
+components:
+  schemas:
+    FileInfo:
+      title: FileInfo
+      x-stoplight:
+        id: 1li8v06fqrcaw
+      type: object
+      properties:
+        file:
+          $ref: '#/components/schemas/File'
+        size:
+          type: integer
+          format: int64
+        lastmod:
+          type: string
+          format: date-time
+    Bucket:
+      title: Bucket
+      x-stoplight:
+        id: 9lwm9t990q1pi
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+    File:
+      title: File
+      x-stoplight:
+        id: fqbwtfl7ge8hn
+      type: object
+      properties:
+        name:
+          type: string
+    BucketInfo:
+      title: BucketInfo
+      x-stoplight:
+        id: mu89lqnnjub82
+      type: object
+      properties:
+        owner:
+          type: string
+        createdAt:
+          type: string
+    Permission:
+      title: Permission
+      x-stoplight:
+        id: upycz0qn2bd1j
+      type: object
+      properties:
+        owner:
+          type: string
+        operations:
+          type: array
+          items:
+            type: string
+  securitySchemes:
+    bearer:
+      type: oauth2
+      flows:
+        authorizationCode:
+          authorizationUrl: ''
+          tokenUrl: ''
+          refreshUrl: ''
+          scopes: {}
+      description: ''
+  parameters:
+    FileName:
+      name: FileName
+      in: path
+      required: true
+      schema:
+        type: string
+    BucketName:
+      name: BucketName
+      in: path
+      required: true
+      schema:
+        type: string
+  responses: {}
+security:
+  - bearer: []

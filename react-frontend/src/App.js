@@ -12,27 +12,24 @@ function App() {
     SetAuth0(useAuth0());
     const config = getConfig();
     if(auth0.isAuthenticated){
+        console.log(auth0.user)
         const tokenOptions = {
             authorizationParams: {
                 audience: config.audience,
-                scope: "access:bucket_ZZZ"
+                scope: "read:bucket_customer_bucker BucketA BucketB BucketC"
             }
         };
-        try {
-            auth0.getAccessTokenSilently(tokenOptions).then(function (token) {
+        auth0.getAccessTokenSilently(tokenOptions).then(function (token) {
                 apiClient.configuration.accessToken = token;
                 CallQue();
+            }).catch((e) => {
+            auth0.getAccessTokenWithPopup(tokenOptions).then(function (token) {
+                apiClient.configuration.accessToken = token;
+                CallQue();
+            }).catch((e) => {
+                console.log("Token error! : ", e)
             })
-        } catch (e){
-            try {
-                auth0.getAccessTokenWithPopup(tokenOptions).then(function (token) {
-                    apiClient.configuration.accessToken = token;
-                    CallQue();
-                })
-            } catch (e) {
-                console.log("Sorry chef", e)
-            }
-        }
+        })
     }
     return (
 
