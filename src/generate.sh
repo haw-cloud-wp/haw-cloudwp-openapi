@@ -1,6 +1,6 @@
 #!/bin/sh
 openapi-generator generate \
--i ../reference/customerfacing.yaml \
+-i ../reference/v1api.yaml \
 -g go-server \
--o . \
+-o ./v1 \
 --additional-properties=outputAsLibrary=true

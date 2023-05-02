@@ -9,15 +9,9 @@
 
 package openapi
 
-import (
-	"os"
-)
-
 type File struct {
 
 	Name string `json:"name,omitempty"`
-
-	Data *os.File `json:"data,omitempty"`
 }
 
 // AssertFileRequired checks if the required fields are not zero-ed

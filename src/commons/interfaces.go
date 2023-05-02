@@ -9,14 +9,26 @@ import (
 )
 
 type IPermission interface {
-	Init(claims middleware.CustomClaims) IPermission
+	Init(claims *middleware.CustomClaims) IPermission
 	HasPermission(permission string) bool
+}
+type ClaimsPermissionHandler struct {
+	claims *middleware.CustomClaims
+}
+
+func (c *ClaimsPermissionHandler) Init(claims *middleware.CustomClaims) IPermission {
+	c.claims = claims
+	return c
+}
+
+func (c *ClaimsPermissionHandler) HasPermission(permission string) bool {
+	return c.claims.HasPermission(permission)
 }
 
 type AllowAllPermission struct {
 }
 
-func (a *AllowAllPermission) Init(claims middleware.CustomClaims) IPermission {
+func (a *AllowAllPermission) Init(claims *middleware.CustomClaims) IPermission {
 	return a
 }
 

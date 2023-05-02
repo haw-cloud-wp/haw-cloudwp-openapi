@@ -15,7 +15,7 @@ import (
 
 type FileInfo struct {
 
-	Name string `json:"name,omitempty"`
+	File File `json:"file,omitempty"`
 
 	Size int64 `json:"size,omitempty"`
 
@@ -24,6 +24,9 @@ type FileInfo struct {
 
 // AssertFileInfoRequired checks if the required fields are not zero-ed
 func AssertFileInfoRequired(obj FileInfo) error {
+	if err := AssertFileRequired(obj.File); err != nil {
+		return err
+	}
 	return nil
 }
 

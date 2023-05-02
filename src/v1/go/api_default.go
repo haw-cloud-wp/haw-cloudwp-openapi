@@ -51,118 +51,92 @@ func NewDefaultApiController(s DefaultApiServicer, opts ...DefaultApiOption) Rou
 func (c *DefaultApiController) Routes() Routes {
 	return Routes{ 
 		{
-			"GetApiExternal",
+			"DeleteV1BucketName",
+			strings.ToUpper("Delete"),
+			"/v1/Bucket/{name}",
+			c.DeleteV1BucketName,
+		},
+		{
+			"DeleteV1FileName",
+			strings.ToUpper("Delete"),
+			"/v1/Bucket/{bucketname}/File/{filename}",
+			c.DeleteV1FileName,
+		},
+		{
+			"GetV1BucketName",
 			strings.ToUpper("Get"),
-			"/api/external",
-			c.GetApiExternal,
+			"/v1/Bucket/{name}",
+			c.GetV1BucketName,
 		},
 		{
-			"GetFiles",
+			"GetV1Buckets",
 			strings.ToUpper("Get"),
-			"/files",
-			c.GetFiles,
+			"/v1/Buckets",
+			c.GetV1Buckets,
 		},
 		{
-			"GetFilesName",
+			"GetV1FileName",
 			strings.ToUpper("Get"),
-			"/files/{name}",
-			c.GetFilesName,
+			"/v1/Bucket/{bucketname}/File/{filename}",
+			c.GetV1FileName,
 		},
 		{
-			"GetUsersUserId",
+			"GetV1Files",
 			strings.ToUpper("Get"),
-			"/users/{userId}",
-			c.GetUsersUserId,
+			"/v1/Bucket/{name}/Files",
+			c.GetV1Files,
 		},
 		{
-			"OptionsApiExternal",
+			"OptionsV1BucketName",
 			strings.ToUpper("Options"),
-			"/api/external",
-			c.OptionsApiExternal,
+			"/v1/Bucket/{name}",
+			c.OptionsV1BucketName,
 		},
 		{
-			"OptionsFileUpload",
+			"OptionsV1Buckets",
 			strings.ToUpper("Options"),
-			"/file/upload",
-			c.OptionsFileUpload,
+			"/v1/Buckets",
+			c.OptionsV1Buckets,
 		},
 		{
-			"OptionsFiles",
+			"OptionsV1FileName",
 			strings.ToUpper("Options"),
-			"/files",
-			c.OptionsFiles,
+			"/v1/Bucket/{bucketname}/File/{filename}",
+			c.OptionsV1FileName,
 		},
 		{
-			"OptionsFilesName",
+			"OptionsV1Files",
 			strings.ToUpper("Options"),
-			"/files/{name}",
-			c.OptionsFilesName,
+			"/v1/Bucket/{name}/Files",
+			c.OptionsV1Files,
 		},
 		{
-			"OptionsUser",
-			strings.ToUpper("Options"),
-			"/user",
-			c.OptionsUser,
-		},
-		{
-			"OptionsUsersUserId",
-			strings.ToUpper("Options"),
-			"/users/{userId}",
-			c.OptionsUsersUserId,
-		},
-		{
-			"PatchUsersUserId",
+			"PatchV1BucketName",
 			strings.ToUpper("Patch"),
-			"/users/{userId}",
-			c.PatchUsersUserId,
+			"/v1/Bucket/{name}",
+			c.PatchV1BucketName,
 		},
 		{
-			"PostUser",
+			"PostV1BucketName",
 			strings.ToUpper("Post"),
-			"/user",
-			c.PostUser,
+			"/v1/Bucket/{name}",
+			c.PostV1BucketName,
 		},
 		{
-			"PutFileUpload",
+			"PutV1FileName",
 			strings.ToUpper("Put"),
-			"/file/upload",
-			c.PutFileUpload,
+			"/v1/Bucket/{bucketname}/File/{filename}",
+			c.PutV1FileName,
 		},
 	}
 }
 
-// GetApiExternal - Your GET endpoint
-func (c *DefaultApiController) GetApiExternal(w http.ResponseWriter, r *http.Request) {
-	result, err := c.service.GetApiExternal(r.Context())
-	// If an error occurred, encode the error with the status code
-	if err != nil {
-		c.errorHandler(w, r, err, &result)
-		return
-	}
-	// If no error, encode the body and the result code
-	EncodeJSONResponse(result.Body, &result.Code, w)
-
-}
-
-// GetFiles - Your GET endpoint
-func (c *DefaultApiController) GetFiles(w http.ResponseWriter, r *http.Request) {
-	result, err := c.service.GetFiles(r.Context())
-	// If an error occurred, encode the error with the status code
-	if err != nil {
-		c.errorHandler(w, r, err, &result)
-		return
-	}
-	// If no error, encode the body and the result code
-	EncodeJSONResponse(result.Body, &result.Code, w)
-
-}
-
-// GetFilesName - Your GET endpoint
-func (c *DefaultApiController) GetFilesName(w http.ResponseWriter, r *http.Request) {
+// DeleteV1BucketName - 
+func (c *DefaultApiController) DeleteV1BucketName(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
-	nameParam := params["name"]
+	bucketNameParam := params["BucketName"]
 	
-	result, err := c.service.GetFilesName(r.Context(), nameParam)
+	result, err := c.service.DeleteV1BucketName(r.Context(), bucketNameParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)
@@ -173,71 +147,14 @@ func (c *DefaultApiController) GetFilesName(w http.ResponseWriter, r *http.Reque
 
 }
 
-// GetUsersUserId - Get User Info by User ID
-func (c *DefaultApiController) GetUsersUserId(w http.ResponseWriter, r *http.Request) {
+// DeleteV1FileName - 
+func (c *DefaultApiController) DeleteV1FileName(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
-	userIdParam, err := parseInt32Parameter(params["userId"], true)
-	if err != nil {
-		c.errorHandler(w, r, &ParsingError{Err: err}, nil)
-		return
-	}
-
-	result, err := c.service.GetUsersUserId(r.Context(), userIdParam)
-	// If an error occurred, encode the error with the status code
-	if err != nil {
-		c.errorHandler(w, r, err, &result)
-		return
-	}
-	// If no error, encode the body and the result code
-	EncodeJSONResponse(result.Body, &result.Code, w)
-
-}
-
-// OptionsApiExternal - 
-func (c *DefaultApiController) OptionsApiExternal(w http.ResponseWriter, r *http.Request) {
-	result, err := c.service.OptionsApiExternal(r.Context())
-	// If an error occurred, encode the error with the status code
-	if err != nil {
-		c.errorHandler(w, r, err, &result)
-		return
-	}
-	// If no error, encode the body and the result code
-	EncodeJSONResponse(result.Body, &result.Code, w)
-
-}
-
-// OptionsFileUpload - 
-func (c *DefaultApiController) OptionsFileUpload(w http.ResponseWriter, r *http.Request) {
-	result, err := c.service.OptionsFileUpload(r.Context())
-	// If an error occurred, encode the error with the status code
-	if err != nil {
-		c.errorHandler(w, r, err, &result)
-		return
-	}
-	// If no error, encode the body and the result code
-	EncodeJSONResponse(result.Body, &result.Code, w)
-
-}
-
-// OptionsFiles - 
-func (c *DefaultApiController) OptionsFiles(w http.ResponseWriter, r *http.Request) {
-	result, err := c.service.OptionsFiles(r.Context())
-	// If an error occurred, encode the error with the status code
-	if err != nil {
-		c.errorHandler(w, r, err, &result)
-		return
-	}
-	// If no error, encode the body and the result code
-	EncodeJSONResponse(result.Body, &result.Code, w)
-
-}
-
-// OptionsFilesName - 
-func (c *DefaultApiController) OptionsFilesName(w http.ResponseWriter, r *http.Request) {
-	params := mux.Vars(r)
-	nameParam := params["name"]
+	bucketNameParam := params["BucketName"]
 	
-	result, err := c.service.OptionsFilesName(r.Context(), nameParam)
+	fileNameParam := params["FileName"]
+	
+	result, err := c.service.DeleteV1FileName(r.Context(), bucketNameParam, fileNameParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)
@@ -248,29 +165,12 @@ func (c *DefaultApiController) OptionsFilesName(w http.ResponseWriter, r *http.R
 
 }
 
-// OptionsUser - 
-func (c *DefaultApiController) OptionsUser(w http.ResponseWriter, r *http.Request) {
-	result, err := c.service.OptionsUser(r.Context())
-	// If an error occurred, encode the error with the status code
-	if err != nil {
-		c.errorHandler(w, r, err, &result)
-		return
-	}
-	// If no error, encode the body and the result code
-	EncodeJSONResponse(result.Body, &result.Code, w)
-
-}
-
-// OptionsUsersUserId - 
-func (c *DefaultApiController) OptionsUsersUserId(w http.ResponseWriter, r *http.Request) {
+// GetV1BucketName - Your GET endpoint
+func (c *DefaultApiController) GetV1BucketName(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
-	userIdParam, err := parseInt32Parameter(params["userId"], true)
-	if err != nil {
-		c.errorHandler(w, r, &ParsingError{Err: err}, nil)
-		return
-	}
-
-	result, err := c.service.OptionsUsersUserId(r.Context(), userIdParam)
+	bucketNameParam := params["BucketName"]
+	
+	result, err := c.service.GetV1BucketName(r.Context(), bucketNameParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)
@@ -281,27 +181,162 @@ func (c *DefaultApiController) OptionsUsersUserId(w http.ResponseWriter, r *http
 
 }
 
-// PatchUsersUserId - Update User Information
-func (c *DefaultApiController) PatchUsersUserId(w http.ResponseWriter, r *http.Request) {
-	params := mux.Vars(r)
-	userIdParam, err := parseInt32Parameter(params["userId"], true)
+// GetV1Buckets - Your GET endpoint
+func (c *DefaultApiController) GetV1Buckets(w http.ResponseWriter, r *http.Request) {
+	result, err := c.service.GetV1Buckets(r.Context())
+	// If an error occurred, encode the error with the status code
 	if err != nil {
-		c.errorHandler(w, r, &ParsingError{Err: err}, nil)
+		c.errorHandler(w, r, err, &result)
 		return
 	}
+	// If no error, encode the body and the result code
+	EncodeJSONResponse(result.Body, &result.Code, w)
 
-	patchUsersUserIdRequestParam := PatchUsersUserIdRequest{}
+}
+
+// GetV1FileName - Your GET endpoint
+func (c *DefaultApiController) GetV1FileName(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	bucketNameParam := params["BucketName"]
+	
+	fileNameParam := params["FileName"]
+	
+	result, err := c.service.GetV1FileName(r.Context(), bucketNameParam, fileNameParam)
+	// If an error occurred, encode the error with the status code
+	if err != nil {
+		c.errorHandler(w, r, err, &result)
+		return
+	}
+	// If no error, encode the body and the result code
+	EncodeJSONResponse(result.Body, &result.Code, w)
+
+}
+
+// GetV1Files - Your GET endpoint
+func (c *DefaultApiController) GetV1Files(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	bucketNameParam := params["BucketName"]
+	
+	result, err := c.service.GetV1Files(r.Context(), bucketNameParam)
+	// If an error occurred, encode the error with the status code
+	if err != nil {
+		c.errorHandler(w, r, err, &result)
+		return
+	}
+	// If no error, encode the body and the result code
+	EncodeJSONResponse(result.Body, &result.Code, w)
+
+}
+
+// OptionsV1BucketName - 
+func (c *DefaultApiController) OptionsV1BucketName(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	bucketNameParam := params["BucketName"]
+	
+	result, err := c.service.OptionsV1BucketName(r.Context(), bucketNameParam)
+	// If an error occurred, encode the error with the status code
+	if err != nil {
+		c.errorHandler(w, r, err, &result)
+		return
+	}
+	// If no error, encode the body and the result code
+	EncodeJSONResponse(result.Body, &result.Code, w)
+
+}
+
+// OptionsV1Buckets - 
+func (c *DefaultApiController) OptionsV1Buckets(w http.ResponseWriter, r *http.Request) {
+	result, err := c.service.OptionsV1Buckets(r.Context())
+	// If an error occurred, encode the error with the status code
+	if err != nil {
+		c.errorHandler(w, r, err, &result)
+		return
+	}
+	// If no error, encode the body and the result code
+	EncodeJSONResponse(result.Body, &result.Code, w)
+
+}
+
+// OptionsV1FileName - 
+func (c *DefaultApiController) OptionsV1FileName(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	bucketNameParam := params["BucketName"]
+	
+	fileNameParam := params["FileName"]
+	
+	result, err := c.service.OptionsV1FileName(r.Context(), bucketNameParam, fileNameParam)
+	// If an error occurred, encode the error with the status code
+	if err != nil {
+		c.errorHandler(w, r, err, &result)
+		return
+	}
+	// If no error, encode the body and the result code
+	EncodeJSONResponse(result.Body, &result.Code, w)
+
+}
+
+// OptionsV1Files - 
+func (c *DefaultApiController) OptionsV1Files(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	bucketNameParam := params["BucketName"]
+	
+	result, err := c.service.OptionsV1Files(r.Context(), bucketNameParam)
+	// If an error occurred, encode the error with the status code
+	if err != nil {
+		c.errorHandler(w, r, err, &result)
+		return
+	}
+	// If no error, encode the body and the result code
+	EncodeJSONResponse(result.Body, &result.Code, w)
+
+}
+
+// PatchV1BucketName - 
+func (c *DefaultApiController) PatchV1BucketName(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	bucketNameParam := params["BucketName"]
+	
+	permissionParam := []Permission{}
 	d := json.NewDecoder(r.Body)
 	d.DisallowUnknownFields()
-	if err := d.Decode(&patchUsersUserIdRequestParam); err != nil {
+	if err := d.Decode(&permissionParam); err != nil {
 		c.errorHandler(w, r, &ParsingError{Err: err}, nil)
 		return
 	}
-	if err := AssertPatchUsersUserIdRequestRequired(patchUsersUserIdRequestParam); err != nil {
+	for _, el := range permissionParam {
+		if err := AssertPermissionRequired(el); err != nil {
+			c.errorHandler(w, r, err, nil)
+			return
+		}
+	}
+	result, err := c.service.PatchV1BucketName(r.Context(), bucketNameParam, permissionParam)
+	// If an error occurred, encode the error with the status code
+	if err != nil {
+		c.errorHandler(w, r, err, &result)
+		return
+	}
+	// If no error, encode the body and the result code
+	EncodeJSONResponse(result.Body, &result.Code, w)
+
+}
+
+// PostV1BucketName - 
+func (c *DefaultApiController) PostV1BucketName(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	bucketNameParam := params["BucketName"]
+	
+	postV1BucketNameRequestParam := PostV1BucketNameRequest{}
+	d := json.NewDecoder(r.Body)
+	d.DisallowUnknownFields()
+	if err := d.Decode(&postV1BucketNameRequestParam); err != nil {
+		c.errorHandler(w, r, &ParsingError{Err: err}, nil)
+		return
+	}
+	if err := AssertPostV1BucketNameRequestRequired(postV1BucketNameRequestParam); err != nil {
 		c.errorHandler(w, r, err, nil)
 		return
 	}
-	result, err := c.service.PatchUsersUserId(r.Context(), userIdParam, patchUsersUserIdRequestParam)
+	result, err := c.service.PostV1BucketName(r.Context(), bucketNameParam, postV1BucketNameRequestParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)
@@ -312,44 +347,24 @@ func (c *DefaultApiController) PatchUsersUserId(w http.ResponseWriter, r *http.R
 
 }
 
-// PostUser - Create New User
-func (c *DefaultApiController) PostUser(w http.ResponseWriter, r *http.Request) {
-	postUserRequestParam := PostUserRequest{}
-	d := json.NewDecoder(r.Body)
-	d.DisallowUnknownFields()
-	if err := d.Decode(&postUserRequestParam); err != nil {
-		c.errorHandler(w, r, &ParsingError{Err: err}, nil)
-		return
-	}
-	if err := AssertPostUserRequestRequired(postUserRequestParam); err != nil {
-		c.errorHandler(w, r, err, nil)
-		return
-	}
-	result, err := c.service.PostUser(r.Context(), postUserRequestParam)
-	// If an error occurred, encode the error with the status code
-	if err != nil {
-		c.errorHandler(w, r, err, &result)
-		return
-	}
-	// If no error, encode the body and the result code
-	EncodeJSONResponse(result.Body, &result.Code, w)
-
-}
-
-// PutFileUpload - 
-func (c *DefaultApiController) PutFileUpload(w http.ResponseWriter, r *http.Request) {
+// PutV1FileName - 
+func (c *DefaultApiController) PutV1FileName(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseMultipartForm(32 << 20); err != nil {
 		c.errorHandler(w, r, &ParsingError{Err: err}, nil)
 		return
 	}
-				nameParam := r.FormValue("name")
+	params := mux.Vars(r)
+	bucketNameParam := params["BucketName"]
+	
+	fileNameParam := params["FileName"]
+	
 	
 	dataParam, err := ReadFormFileToTempFile(r, "data")
 	if err != nil {
 		c.errorHandler(w, r, &ParsingError{Err: err}, nil)
 		return
 	}
-			result, err := c.service.PutFileUpload(r.Context(), nameParam, dataParam)
+			result, err := c.service.PutV1FileName(r.Context(), bucketNameParam, fileNameParam, dataParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)

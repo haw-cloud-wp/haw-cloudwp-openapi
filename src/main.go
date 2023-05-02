@@ -11,9 +11,9 @@ package main
 
 import (
 	"github.com/gorilla/handlers"
-	"github.com/scrapes/haw-cloudwp-openapi/src/Controller"
-	openapi "github.com/scrapes/haw-cloudwp-openapi/src/go"
-	"github.com/scrapes/haw-cloudwp-openapi/src/middleware"
+	controller2 "github.com/scrapes/haw-cloudwp-openapi/src/controller"
+	"github.com/scrapes/haw-cloudwp-openapi/src/service"
+	openapi "github.com/scrapes/haw-cloudwp-openapi/src/v1/go"
 	"log"
 	"net/http"
 	"os"
@@ -45,19 +45,20 @@ func main() {
 		corsOrigins = "http://localhost:3000,https://app.cloudwp.anwski.de,https://api.cloudwp.anwski.de"
 	}
 
-	DefaultApiService := new(Controller.ApiController)
-	DefaultApiController := openapi.NewDefaultApiController(DefaultApiService)
+	s := new(service.V1Service)
+	controller := new(controller2.V1Controller).Init(s)
 	allowedOrigins := strings.Split(corsOrigins, ",")
 
-	router := openapi.NewRouter(DefaultApiController)
+	router := openapi.NewRouter(controller)
+
 	router.Use(handlers.CORS(
 		handlers.AllowedOrigins(allowedOrigins),
 		handlers.AllowCredentials(),
 		handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"}),
-		handlers.AllowedMethods([]string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}),
+		handlers.AllowedMethods([]string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"}),
 	))
 
-	router.Use(middleware.EnsureValidToken(auth0Domain, auth0Audience))
+	//router.Use(middleware.EnsureValidToken(auth0Domain, auth0Audience))
 
 	log.Fatal(http.ListenAndServe(":"+port, router))
 }

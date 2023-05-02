@@ -89,8 +89,36 @@ func (G *GCloudStorage) GetObjectStream(bucket commons.IBucket, object commons.I
 }
 
 func (G *GCloudStorage) GetObject(bucket commons.IBucket, object commons.IObject) (error, *os.File) {
-	//TODO implement me
-	panic("implement me")
+	file, err := os.CreateTemp("", "obj-")
+	if err != nil {
+		return err, nil
+	}
+	obj := G.client.Bucket(bucket.GetName()).Object(object.GetName())
+	r, err := obj.NewReader(G.ctx)
+	if err != nil {
+		return err, nil
+	}
+	buff := make([]byte, 4096)
+	for {
+		n, err := r.Read(buff)
+		if err != nil && err != io.EOF {
+			return err, nil
+		}
+		if n == 0 {
+			break
+		}
+
+		// write a chunk
+		if _, err := file.Write(buff[:n]); err != nil {
+			return err, nil
+		}
+	}
+
+	err = file.Close()
+	if err != nil {
+		return err, nil
+	}
+	return nil, file
 }
 
 func (G *GCloudStorage) SetObject(bucket commons.IBucket, object commons.IObject, data *os.File) error {

@@ -3,19 +3,27 @@ package middleware
 import (
 	"context"
 	jwtmiddleware "github.com/auth0/go-jwt-middleware/v2"
+	"github.com/auth0/go-jwt-middleware/v2/jwks"
+	"github.com/auth0/go-jwt-middleware/v2/validator"
 	"log"
 	"net/http"
 	"net/url"
 	"strings"
 	"time"
-
-	"github.com/auth0/go-jwt-middleware/v2/jwks"
-	"github.com/auth0/go-jwt-middleware/v2/validator"
 )
 
 // CustomClaims contains custom data we want from the token.
 type CustomClaims struct {
-	Scope string `json:"scope"`
+	Scope       string   `json:"scope"`
+	Permissions []string `json:"permissions"`
+}
+
+func (c CustomClaims) Init(claims CustomClaims) CustomClaims {
+	return c
+}
+
+func (c CustomClaims) HasPermission(permission string) bool {
+	return c.HasScope(permission)
 }
 
 // Validate does nothing for this example, but we need
