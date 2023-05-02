@@ -79,8 +79,7 @@ func (G *GCloudStorage) GetObjects(bucket commons.IBucket) (error, []commons.IOb
 }
 
 func (G *GCloudStorage) DeleteObject(bucket commons.IBucket, object commons.IObject) error {
-	//TODO implement me
-	panic("implement me")
+	return G.client.Bucket(bucket.GetName()).Object(object.GetName()).Delete(G.ctx)
 }
 
 func (G *GCloudStorage) GetObjectStream(bucket commons.IBucket, object commons.IObject) (error, *io.Reader) {
