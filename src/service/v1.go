@@ -2,6 +2,8 @@ package service
 
 import (
 	"context"
+	"encoding/binary"
+	"errors"
 	"github.com/scrapes/haw-cloudwp-openapi/src/commons"
 	"github.com/scrapes/haw-cloudwp-openapi/src/middleware"
 	"github.com/scrapes/haw-cloudwp-openapi/src/storage"
@@ -22,9 +24,23 @@ func GetInternalServerError(err error) (openapi.ImplResponse, error) {
 type V1Service struct {
 }
 
-func (v *V1Service) DeleteV1BucketName(ctx context.Context, s string) (openapi.ImplResponse, error) {
+func (v *V1Service) DeleteV1BucketName(ctx context.Context, bucketName string) (openapi.ImplResponse, error) {
+	_, cc := middleware.GetToken(ctx)
+	permission := new(commons.ClaimsPermissionHandler).Init(cc)
+	gStorage := new(storage.GCloudStorage).Init(permission)
+	bucketToDelete := new(commons.Bucket).Init(gStorage, bucketName)
+	err := bucketToDelete.Delete()
 
-	panic("implement me")
+	if err != nil {
+		return GetInternalServerError(err)
+	}
+
+	return openapi.ImplResponse{
+		Code: http.StatusOK,
+		Body: struct {
+			Message string
+		}{Message: "OK"},
+	}, nil
 }
 
 func (v *V1Service) DeleteV1FileName(ctx context.Context, bucketName string, fileName string) (openapi.ImplResponse, error) {
@@ -48,9 +64,24 @@ func (v *V1Service) DeleteV1FileName(ctx context.Context, bucketName string, fil
 
 }
 
-func (v *V1Service) GetV1BucketName(ctx context.Context, s string) (openapi.ImplResponse, error) {
-	//TODO implement me
-	panic("implement me")
+func (v *V1Service) GetV1BucketName(ctx context.Context, bucketName string) (openapi.ImplResponse, error) {
+	_, cc := middleware.GetToken(ctx)
+	permission := new(commons.ClaimsPermissionHandler).Init(cc)
+	gStorage := new(storage.GCloudStorage).Init(permission)
+	bucket := new(commons.Bucket).Init(gStorage, bucketName)
+	name := bucket.GetName()
+
+	if binary.Size(name) <= 0 { //ist das einproblem wenn der Bucket "" heißt?
+		return GetInternalServerError(errors.New("bucket name empty"))
+	}
+
+	return openapi.ImplResponse{
+		Code: http.StatusOK,
+		Body: openapi.BucketInfo{
+			Owner:     "kommt noch aus der SQLDB111979",
+			CreatedAt: "kommt noch aus der SQLDB111979",
+		}, //wo wird der Name zurückgeben #anton hiiiilfe
+	}, nil
 }
 
 func (v *V1Service) GetV1Buckets(ctx context.Context) (openapi.ImplResponse, error) {
@@ -63,9 +94,33 @@ func (v *V1Service) GetV1FileName(ctx context.Context, s string, s2 string) (ope
 	panic("implement me")
 }
 
-func (v *V1Service) GetV1Files(ctx context.Context, s string) (openapi.ImplResponse, error) {
-	//TODO implement me
-	panic("implement me")
+func (v *V1Service) GetV1Files(ctx context.Context, bucketName string) (openapi.ImplResponse, error) {
+	if binary.Size(bucketName) <= 0 { //ist das einproblem wenn der Bucket "" heißt?
+		return GetInternalServerError(errors.New("bucket name empty"))
+	}
+
+	_, cc := middleware.GetToken(ctx)
+	permission := new(commons.ClaimsPermissionHandler).Init(cc)
+	gStorage := new(storage.GCloudStorage).Init(permission)
+	bucket := new(commons.Bucket).Init(gStorage, bucketName)
+	_, files := bucket.GetObjects()
+
+	var fileInfos []openapi.FileInfo
+	for _, file := range files {
+		fileInfos = append(fileInfos, openapi.FileInfo{
+			File: openapi.File{
+				Name: file.GetName(),
+			},
+			Size:    file.GetSize(),
+			Lastmod: file.GetLastMod(),
+		})
+	}
+
+	return openapi.ImplResponse{
+		Code: http.StatusOK,
+		Body: fileInfos,
+	}, nil
+
 }
 
 func (v *V1Service) OptionsV1BucketName(ctx context.Context, s string) (openapi.ImplResponse, error) {
