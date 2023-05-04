@@ -9,11 +9,15 @@
 
 package openapi
 
+import (
+	"time"
+)
+
 type BucketInfo struct {
 
 	Owner string `json:"owner,omitempty"`
 
-	CreatedAt string `json:"createdAt,omitempty"`
+	CreatedAt time.Time `json:"createdAt,omitempty"`
 }
 
 // AssertBucketInfoRequired checks if the required fields are not zero-ed

@@ -9,9 +9,9 @@ import (
 	"github.com/scrapes/haw-cloudwp-openapi/src/middleware"
 	"github.com/scrapes/haw-cloudwp-openapi/src/storage"
 	openapi "github.com/scrapes/haw-cloudwp-openapi/src/v1/go"
+	"log"
 	"net/http"
 	"os"
-	"strconv"
 )
 
 func GetInternalServerError(err error) (openapi.ImplResponse, error) {
@@ -23,6 +23,15 @@ func GetInternalServerError(err error) (openapi.ImplResponse, error) {
 	}, err
 }
 
+func GetNotFound() (openapi.ImplResponse, error) {
+	return openapi.ImplResponse{
+		Code: http.StatusNotFound,
+		Body: struct {
+			Error string
+		}{Error: "Object not found"},
+	}, nil
+}
+
 type V1Service struct {
 	db *db.Connection
 }
@@ -32,7 +41,7 @@ func (v *V1Service) getOrCreateUser(userID string) *db.User {
 	rows := v.db.DB.Model(dbUser).Preload("Access").First(dbUser, "auth0_id = ?", userID)
 	if !(rows.RowsAffected > 0) {
 		dbUser.Auth0ID = userID
-		dbUser.Access = make([]db.Bucket, 0)
+		dbUser.Access = make([]*db.Bucket, 0)
 		v.db.DB.Create(dbUser)
 	}
 	return dbUser
@@ -44,7 +53,7 @@ func (v *V1Service) SetDB(db *db.Connection) {
 
 func (v *V1Service) DeleteV1BucketName(ctx context.Context, bucketName string) (openapi.ImplResponse, error) {
 	_, cc := middleware.GetToken(ctx)
-	permission := new(commons.ClaimsPermissionHandler).Init(cc)
+	permission := new(commons.AllowAllPermission).Init(cc)
 	gStorage := new(storage.GCloudStorage).Init(permission)
 	bucketToDelete := new(commons.Bucket).Init(gStorage, bucketName)
 	err := bucketToDelete.Delete()
@@ -52,6 +61,12 @@ func (v *V1Service) DeleteV1BucketName(ctx context.Context, bucketName string) (
 	if err != nil {
 		return GetInternalServerError(err)
 	}
+
+	dbBucket := new(db.Bucket)
+	v.db.DB.First(dbBucket, "name = ?", bucketName)
+	err = v.db.DB.Model(dbBucket).Association("User").Clear()
+	v.db.DB.Updates(dbBucket)
+	v.db.DB.Delete(dbBucket)
 
 	return openapi.ImplResponse{
 		Code: http.StatusOK,
@@ -63,10 +78,11 @@ func (v *V1Service) DeleteV1BucketName(ctx context.Context, bucketName string) (
 
 func (v *V1Service) DeleteV1FileName(ctx context.Context, bucketName string, fileName string) (openapi.ImplResponse, error) {
 	_, cc := middleware.GetToken(ctx)
-	perm := new(commons.ClaimsPermissionHandler).Init(cc)
+	perm := new(commons.AllowAllPermission).Init(cc)
 	gStorage := new(storage.GCloudStorage).Init(perm)
 	bucket := new(commons.Bucket).Init(gStorage, bucketName)
 	objectToDelete := new(commons.Object).Init(bucket, fileName)
+	log.Println(bucketName, fileName)
 	err := objectToDelete.Delete()
 
 	if err != nil {
@@ -84,7 +100,7 @@ func (v *V1Service) DeleteV1FileName(ctx context.Context, bucketName string, fil
 
 func (v *V1Service) GetV1BucketName(ctx context.Context, bucketName string) (openapi.ImplResponse, error) {
 	_, cc := middleware.GetToken(ctx)
-	permission := new(commons.ClaimsPermissionHandler).Init(cc)
+	permission := new(commons.AllowAllPermission).Init(cc)
 	gStorage := new(storage.GCloudStorage).Init(permission)
 	bucket := new(commons.Bucket).Init(gStorage, bucketName)
 	name := bucket.GetName()
@@ -93,13 +109,18 @@ func (v *V1Service) GetV1BucketName(ctx context.Context, bucketName string) (ope
 		return GetInternalServerError(errors.New("bucket name empty"))
 	}
 
-	return openapi.ImplResponse{
-		Code: http.StatusOK,
-		Body: openapi.BucketInfo{
-			Owner:     "kommt noch aus der SQLDB111979",
-			CreatedAt: "kommt noch aus der SQLDB111979",
-		}, //wo wird der Name zurückgeben #anton hiiiilfe
-	}, nil
+	dbBucket := new(db.Bucket)
+	row := v.db.DB.First(dbBucket, "name = ?", bucketName)
+	if row.RowsAffected > 0 {
+		return openapi.ImplResponse{
+			Code: http.StatusOK,
+			Body: openapi.BucketInfo{
+				Owner:     "",
+				CreatedAt: dbBucket.CreatedAt,
+			},
+		}, nil
+	}
+	return GetNotFound()
 }
 
 func (v *V1Service) GetV1Buckets(ctx context.Context) (openapi.ImplResponse, error) {
@@ -108,7 +129,7 @@ func (v *V1Service) GetV1Buckets(ctx context.Context) (openapi.ImplResponse, err
 	var response []openapi.Bucket
 	for _, bucket := range user.Access {
 		response = append(response, openapi.Bucket{
-			Id:   strconv.Itoa(int(bucket.ID)),
+			Id:   bucket.Name,
 			Name: bucket.Name,
 		})
 	}
@@ -125,15 +146,15 @@ func (v *V1Service) GetV1FileName(ctx context.Context, s string, s2 string) (ope
 }
 
 func (v *V1Service) GetV1Files(ctx context.Context, bucketName string) (openapi.ImplResponse, error) {
-	if binary.Size(bucketName) <= 0 { //ist das einproblem wenn der Bucket "" heißt?
-		return GetInternalServerError(errors.New("bucket name empty"))
-	}
-
 	_, cc := middleware.GetToken(ctx)
-	permission := new(commons.ClaimsPermissionHandler).Init(cc)
+	log.Println(bucketName)
+	permission := new(commons.AllowAllPermission).Init(cc)
 	gStorage := new(storage.GCloudStorage).Init(permission)
 	bucket := new(commons.Bucket).Init(gStorage, bucketName)
-	_, files := bucket.GetObjects()
+	err, files := bucket.GetObjects()
+	if err != nil {
+		return GetInternalServerError(err)
+	}
 
 	var fileInfos []openapi.FileInfo
 	for _, file := range files {
@@ -181,7 +202,7 @@ func (v *V1Service) PatchV1BucketName(ctx context.Context, s string, permissions
 // Create Bucket
 func (v *V1Service) PostV1BucketName(ctx context.Context, s string, request openapi.PostV1BucketNameRequest) (openapi.ImplResponse, error) {
 	_, cc := middleware.GetToken(ctx)
-	gstore := new(storage.GCloudStorage).Init(new(commons.ClaimsPermissionHandler).Init(cc))
+	gstore := new(storage.GCloudStorage).Init(new(commons.AllowAllPermission).Init(cc))
 	err, _ := gstore.CreateBucket(request.Name)
 	if err != nil {
 		return GetInternalServerError(err)
@@ -192,7 +213,7 @@ func (v *V1Service) PostV1BucketName(ctx context.Context, s string, request open
 	v.db.DB.Create(dbBucket)
 
 	dbUser := v.getOrCreateUser(cc.UserID)
-	dbUser.Access = append(dbUser.Access, *dbBucket)
+	dbUser.Access = append(dbUser.Access, dbBucket)
 	v.db.DB.Updates(dbUser)
 
 	return openapi.ImplResponse{
@@ -204,6 +225,22 @@ func (v *V1Service) PostV1BucketName(ctx context.Context, s string, request open
 }
 
 func (v *V1Service) PutV1FileName(ctx context.Context, s string, s2 string, file *os.File) (openapi.ImplResponse, error) {
-	//TODO implement me
-	panic("implement me")
+	_, cc := middleware.GetToken(ctx)
+	store := new(storage.GCloudStorage).Init(new(commons.AllowAllPermission).Init(cc))
+	bucket := new(commons.Bucket).Init(store, s)
+	obj := new(commons.Object).Init(bucket, s2)
+	f, err := os.Open(file.Name())
+	if err != nil {
+		return GetInternalServerError(err)
+	}
+	err = obj.Set(f)
+	if err != nil {
+		return GetInternalServerError(err)
+	}
+	return openapi.ImplResponse{
+		Code: http.StatusOK,
+		Body: struct {
+			Message string
+		}{Message: "OK"},
+	}, nil
 }

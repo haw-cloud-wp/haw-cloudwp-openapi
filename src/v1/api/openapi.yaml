@@ -31,7 +31,7 @@ paths:
         "200":
           description: OK
       summary: ""
-  /v1/Bucket/{name}:
+  /v1/Bucket/{BucketName}:
     delete:
       operationId: delete-v1-Bucket-name
       parameters:
@@ -132,7 +132,7 @@ paths:
         "400":
           description: Bad Request
       summary: ""
-  /v1/Bucket/{name}/Files:
+  /v1/Bucket/{BucketName}/Files:
     get:
       operationId: get-v1-Files
       parameters:
@@ -168,7 +168,7 @@ paths:
         "200":
           description: OK
       summary: ""
-  /v1/Bucket/{bucketname}/File/{filename}:
+  /v1/Bucket/{BucketName}/File/{FileName}:
     delete:
       description: ""
       operationId: delete-v1-File-name
@@ -330,11 +330,12 @@ components:
     BucketInfo:
       example:
         owner: owner
-        createdAt: createdAt
+        createdAt: 2000-01-23T04:56:07.000+00:00
       properties:
         owner:
           type: string
         createdAt:
+          format: date-time
           type: string
       title: BucketInfo
       type: object

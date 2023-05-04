@@ -53,8 +53,7 @@ func (G *GCloudStorage) GetObjectLastMod(bucket commons.IBucket, object commons.
 }
 
 func (G *GCloudStorage) DeleteBucket(bucket commons.IBucket) error {
-	//TODO implement me
-	panic("implement me")
+	return G.client.Bucket(GCLOUD_PROJECT_ID + "__" + bucket.GetName()).Delete(G.ctx)
 }
 
 func (G *GCloudStorage) CreateBucket(name string) (error, commons.IBucket) {
@@ -86,7 +85,7 @@ func (G *GCloudStorage) GetObjects(bucket commons.IBucket) (error, []commons.IOb
 }
 
 func (G *GCloudStorage) DeleteObject(bucket commons.IBucket, object commons.IObject) error {
-	return G.client.Bucket(bucket.GetName()).Object(object.GetName()).Delete(G.ctx)
+	return G.client.Bucket(GCLOUD_PROJECT_ID + "__" + bucket.GetName()).Object(object.GetName()).Delete(G.ctx)
 }
 
 func (G *GCloudStorage) GetObjectStream(bucket commons.IBucket, object commons.IObject) (error, *io.Reader) {

@@ -1,7 +1,6 @@
 package db
 
 import (
-	"gorm.io/gorm"
 	"time"
 )
 
@@ -11,13 +10,12 @@ var ModelList = []any{
 }
 
 type Bucket struct {
-	gorm.Model
 	Name      string `gorm:"primaryKey"`
 	CreatedAt time.Time
+	User      []*User `gorm:"many2many:user_bucket;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 }
 
 type User struct {
-	gorm.Model
-	Auth0ID string   `gorm:"primaryKey"`
-	Access  []Bucket `gorm:"many2many:user_bucket;"`
+	Auth0ID string    `gorm:"primaryKey"`
+	Access  []*Bucket `gorm:"many2many:user_bucket;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 }

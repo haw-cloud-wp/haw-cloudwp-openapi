@@ -53,19 +53,19 @@ func (c *DefaultApiController) Routes() Routes {
 		{
 			"DeleteV1BucketName",
 			strings.ToUpper("Delete"),
-			"/v1/Bucket/{name}",
+			"/v1/Bucket/{BucketName}",
 			c.DeleteV1BucketName,
 		},
 		{
 			"DeleteV1FileName",
 			strings.ToUpper("Delete"),
-			"/v1/Bucket/{bucketname}/File/{filename}",
+			"/v1/Bucket/{BucketName}/File/{FileName}",
 			c.DeleteV1FileName,
 		},
 		{
 			"GetV1BucketName",
 			strings.ToUpper("Get"),
-			"/v1/Bucket/{name}",
+			"/v1/Bucket/{BucketName}",
 			c.GetV1BucketName,
 		},
 		{
@@ -77,19 +77,19 @@ func (c *DefaultApiController) Routes() Routes {
 		{
 			"GetV1FileName",
 			strings.ToUpper("Get"),
-			"/v1/Bucket/{bucketname}/File/{filename}",
+			"/v1/Bucket/{BucketName}/File/{FileName}",
 			c.GetV1FileName,
 		},
 		{
 			"GetV1Files",
 			strings.ToUpper("Get"),
-			"/v1/Bucket/{name}/Files",
+			"/v1/Bucket/{BucketName}/Files",
 			c.GetV1Files,
 		},
 		{
 			"OptionsV1BucketName",
 			strings.ToUpper("Options"),
-			"/v1/Bucket/{name}",
+			"/v1/Bucket/{BucketName}",
 			c.OptionsV1BucketName,
 		},
 		{
@@ -101,31 +101,31 @@ func (c *DefaultApiController) Routes() Routes {
 		{
 			"OptionsV1FileName",
 			strings.ToUpper("Options"),
-			"/v1/Bucket/{bucketname}/File/{filename}",
+			"/v1/Bucket/{BucketName}/File/{FileName}",
 			c.OptionsV1FileName,
 		},
 		{
 			"OptionsV1Files",
 			strings.ToUpper("Options"),
-			"/v1/Bucket/{name}/Files",
+			"/v1/Bucket/{BucketName}/Files",
 			c.OptionsV1Files,
 		},
 		{
 			"PatchV1BucketName",
 			strings.ToUpper("Patch"),
-			"/v1/Bucket/{name}",
+			"/v1/Bucket/{BucketName}",
 			c.PatchV1BucketName,
 		},
 		{
 			"PostV1BucketName",
 			strings.ToUpper("Post"),
-			"/v1/Bucket/{name}",
+			"/v1/Bucket/{BucketName}",
 			c.PostV1BucketName,
 		},
 		{
 			"PutV1FileName",
 			strings.ToUpper("Put"),
-			"/v1/Bucket/{bucketname}/File/{filename}",
+			"/v1/Bucket/{BucketName}/File/{FileName}",
 			c.PutV1FileName,
 		},
 	}
