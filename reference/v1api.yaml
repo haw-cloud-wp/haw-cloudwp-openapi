@@ -96,7 +96,7 @@ paths:
               type: array
               items:
                 $ref: '#/components/schemas/Permission'
-  '/v1/Bucket/{name}/Files':
+  '/v1/Bucket/{BucketName}/Files':
     get:
       summary: Your GET endpoint
       tags: []
@@ -117,7 +117,11 @@ paths:
         '200':
           description: OK
     parameters:
-      - $ref: '#/components/parameters/BucketName'
+      - name: BucketName
+        in: path
+        required: true
+        schema:
+          type: string
   '/v1/Bucket/{BucketName}/File/{FileName}':
     parameters:
       - $ref: '#/components/parameters/BucketName'
@@ -162,6 +166,31 @@ paths:
         '200':
           description: OK
       description: ''
+  '/v1/Bucket{BucketName}/Translate/{FileName}':
+    parameters:
+      - $ref: '#/components/parameters/BucketName'
+      - $ref: ../src/api/openapi.yaml#/components/parameters/FileName
+    get:
+      summary: Your GET endpoint
+      tags: []
+      responses: {}
+      operationId: get-v1-Bucket-BucketName-Translate-FileName
+    options:
+      summary: ''
+      operationId: options-v1-Bucket-BucketName-Translate-FileName
+      responses:
+        '200':
+          description: OK
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                from:
+                  type: string
+                to:
+                  type: string
 components:
   schemas:
     FileInfo:
@@ -206,6 +235,7 @@ components:
           type: string
         createdAt:
           type: string
+          format: date-time
     Permission:
       title: Permission
       x-stoplight:

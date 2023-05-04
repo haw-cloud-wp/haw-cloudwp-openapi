@@ -12,21 +12,27 @@ import {TableBody} from "flowbite-react/lib/esm/components/Table/TableBody";
 import {TableRow} from "flowbite-react/lib/esm/components/Table/TableRow";
 import {TableCell} from "flowbite-react/lib/esm/components/Table/TableCell";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
-import {faDownload, faTrash, faPlus, faSpinner, faFile, faFolder} from "@fortawesome/free-solid-svg-icons";
+import {faDownload, faTrash, faPlus, faSpinner, faFile, faFolder, faLanguage} from "@fortawesome/free-solid-svg-icons";
 import {withAuth0} from "@auth0/auth0-react";
 
 
-export const ViewBucketList = withAuth0(class extends Component {
+export const Filelist = withAuth0(class extends Component {
 
     constructor(props) {
         super(props);
         this.onDropdownClick = this.onDropdownClick.bind(this)
         this.onUploadClick = this.onUploadClick.bind(this)
         this.updateFileList = this.updateFileList.bind(this)
+        this.deleteFile = this.deleteFile.bind(this)
+        this.downloadFile = this.downloadFile.bind(this)
+        this.setFileDownloadState = this.setFileDownloadState.bind(this)
+        this.translateFile = this.translateFile.bind(this)
+        this.setFileTranslateState = this.setFileTranslateState.bind(this)
         let {Bucket} = props;
         this.state = {
             Bucket: Bucket,
             Files: [],
+            FileState: {},
             Folders: [],
             ItemsPerPage: 10,
             Uploading: false,
@@ -40,10 +46,22 @@ export const ViewBucketList = withAuth0(class extends Component {
         Auth0AddQue(() => {
             $.when(apiClient.getV1Files(parent.state.Bucket)).then(function (status) {
                 let response: Array<APIFileInfo> = status.body;
-                let folders = response.filter((f) => f.size === undefined)
-                folders = folders.map((f) => {f.size = 0; return f;})
-                let files = response.filter((f) => f.size > 0)
-                parent.setState({Files: files, Folders: folders})
+                if (response != null) {
+                    let folders = response.filter((f) => f.size === undefined)
+                    folders = folders.map((f) => {
+                        f.size = 0;
+                        return f;
+                    })
+                    let files = response.filter((f) => f.size > 0)
+                    let state = {}
+                    files.forEach((f: APIFileInfo) => {
+                        state[f.file.name] = {Translate: false, Download: false}
+                    })
+                    parent.setState({Files: files, Folders: folders, FileState: state})
+                } else {
+                    parent.setState({Files: [], Folders: [], FileState: {}})
+                }
+
             })
         })
     }
@@ -70,41 +88,67 @@ export const ViewBucketList = withAuth0(class extends Component {
             })
         })
     }
+    deleteFile(filename){
+        let list = this
+        $.when(apiClient.deleteV1FileName(list.state.Bucket, filename)).then((state) => {
+            list.updateFileList()
+        })
+    }
+
+    setFileDownloadState(filename :string, downloading:boolean){
+        let fstate = this.state.FileState
+        fstate[filename].Download = downloading
+        this.setState({FileState: fstate})
+    }
+
+    setFileTranslateState(filename :string, translating:boolean){
+        let fstate = this.state.FileState
+        fstate[filename].Translate = translating
+        this.setState({FileState: fstate})
+    }
+
+    downloadFile(filename){
+        let list = this;
+        list.setFileDownloadState(filename, true)
+        $.when(apiClient.getV1FileName(list.state.Bucket, filename)).then((state) => {
+            let blob :File = state.body;
+            // Create blob link to download
+            const url = window.URL.createObjectURL(
+                new Blob([blob]),
+            );
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute(
+                'download',
+                filename,
+            );
+
+            // Append to html link element page
+            document.body.appendChild(link);
+
+            // Start download
+            link.click();
+
+            // Clean up and remove the link
+            link.parentNode.removeChild(link);
+            list.setFileDownloadState(filename, false)
+        })
+    }
+
     onDropdownClick(e){
         this.setState({ItemsPerPage: e})
         console.log(e);
     }
 
-    /*
-
-    <Card className="mb-5 shadow">
-                    <div className="flex w-full">
-                        <div className="grow w-64">
-                            {this.state.Bucket !== "" && (
-                            <h6 className="text-xl tracking-tight text-gray-900 dark:text-white">
-                                <b>Bucket:</b> <i>{this.state.Bucket}</i>
-                            </h6>
-                            )}
-                            {this.state.Bucket === "" &&(
-                            <h6 className="text-xl font-bold tracking-tight text-gray-900 dark:text-white">
-                                Bucket: <div className="h-2 bg-slate-500 rounded" />
-                            </h6>
-                            )}
-                        </div>
-                        {!isLoading && (
-                            <button onClick={this.onUploadClick} className="aspect-square bg-gradient-to-r from-rose-400 to-pink-700 rounded-full w-10">
-                                <FontAwesomeIcon color="white" icon={faPlus} />
-                            </button>
-                        )}
-                        {isLoading && (
-                            <button className="aspect-square bg-gradient-to-r from-rose-400 to-pink-700 rounded-full w-10" disabled={true}>
-                                <FontAwesomeIcon color="white" icon={faSpinner} className="animate-spin" />
-                            </button>
-                        )}
-
-                    </div>
-                </Card>
-     */
+    translateFile(filename){
+        this.setFileTranslateState(filename, true)
+        let list = this
+        $.when(apiClient.getV1BucketBucketNameTranslateFileName(this.props.Bucket, filename)).then((s) => {
+            console.log(s)
+            list.setFileTranslateState(filename, false)
+            this.updateFileList()
+        })
+    }
     render() {
         let tableList = this.state.Folders.concat(this.state.Files)
         console.log(tableList)
@@ -169,6 +213,7 @@ export const ViewBucketList = withAuth0(class extends Component {
                         <TableHeadCell>Name</TableHeadCell>
                         <TableHeadCell>Size (kB)</TableHeadCell>
                         <TableHeadCell>Last Modified</TableHeadCell>
+                        <TableHeadCell>Translate</TableHeadCell>
                         <TableHeadCell>Download</TableHeadCell>
                         <TableHeadCell>Delete</TableHeadCell>
                     </TableHead>
@@ -182,6 +227,7 @@ export const ViewBucketList = withAuth0(class extends Component {
                                     <TableCell><div className="h-2 bg-slate-500 rounded"></div></TableCell>
                                     <TableCell><div className="h-2 bg-slate-500 rounded"></div></TableCell>
                                     <TableCell><div className="h-2 bg-slate-500 rounded"></div></TableCell>
+                                    <TableCell><div className="h-2 bg-slate-500 rounded"></div></TableCell>
                                 </TableRow>
                             )
                         })}
@@ -189,15 +235,17 @@ export const ViewBucketList = withAuth0(class extends Component {
                         if((index >= ((this.state.CurrentPage-1) * this.state.ItemsPerPage)) &&
                             index < this.state.CurrentPage * this.state.ItemsPerPage){
                             let isFolder = file.size === 0;
+                            let isPDF = file.file.name.endsWith(".pdf") || file.file.name.endsWith(".docx")
                             let icon = isFolder ? faFolder : faFile
                         return (
                             <TableRow>
                                 <TableCell><FontAwesomeIcon icon={icon}/></TableCell>
-                                <TableCell>{file.name}</TableCell>
+                                <TableCell>{file.file.name}</TableCell>
                                 <TableCell>{Math.round(file.size/1024)}</TableCell>
                                 <TableCell>{file.lastmod}</TableCell>
-                                <TableCell align={"right"} width={"3rem"}>{!isFolder && (<Button className="border-0 bg-gradient-to-r from-blue-400 to-cyan-700"><FontAwesomeIcon icon={faDownload} /></Button>)}</TableCell>
-                                <TableCell align={"right"} width={"3rem"}><Button className="border-0 bg-gradient-to-r from-red-400 to-rose-800"><FontAwesomeIcon icon={faTrash} /></Button></TableCell>
+                                <TableCell align={"right"} width={"3rem"}>{isPDF && (<Button onClick={() => {this.translateFile(file.file.name)}} className={`border-0 bg-gradient-to-r from-blue-400 to-cyan-700`}><FontAwesomeIcon icon={this.state.FileState[file.file.name].Translate ? faSpinner : faLanguage} className={this.state.FileState[file.file.name].Translate ? "animate-spin" : ""}/></Button>)}</TableCell>
+                                <TableCell align={"right"} width={"3rem"}>{!isFolder && (<Button onClick={() => {this.downloadFile(file.file.name)}} className={`border-0 bg-gradient-to-r from-blue-400 to-cyan-700`}><FontAwesomeIcon icon={this.state.FileState[file.file.name].Download ? faSpinner : faDownload} className={this.state.FileState[file.file.name].Download ? "animate-spin" : ""}/></Button>)}</TableCell>
+                                <TableCell align={"right"} width={"3rem"}><Button onClick={() => {this.deleteFile(file.file.name)}} className="border-0 bg-gradient-to-r from-red-400 to-rose-800"><FontAwesomeIcon icon={faTrash} /></Button></TableCell>
                             </TableRow>
                         )}
                     })}

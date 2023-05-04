@@ -5,6 +5,7 @@ go 1.19
 require (
 	cloud.google.com/go/cloudsqlconn v1.2.3
 	cloud.google.com/go/storage v1.30.1
+	cloud.google.com/go/translate v1.7.0
 	github.com/auth0/go-jwt-middleware/v2 v2.1.0
 	github.com/go-sql-driver/mysql v1.7.0
 	github.com/gorilla/handlers v1.5.1
@@ -19,7 +20,7 @@ require (
 	cloud.google.com/go/compute v1.19.0 // indirect
 	cloud.google.com/go/compute/metadata v0.2.3 // indirect
 	cloud.google.com/go/iam v0.13.0 // indirect
-	github.com/auth0/go-auth0 v0.17.0 // indirect
+	cloud.google.com/go/longrunning v0.4.1 // indirect
 	github.com/felixge/httpsnoop v1.0.1 // indirect
 	github.com/golang/groupcache v0.0.0-20200121045136-8c9f03a8e57e // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
@@ -31,6 +32,7 @@ require (
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
+	github.com/stretchr/testify v1.8.2 // indirect
 	go.opencensus.io v0.24.0 // indirect
 	golang.org/x/crypto v0.6.0 // indirect
 	golang.org/x/net v0.9.0 // indirect

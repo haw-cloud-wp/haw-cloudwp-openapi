@@ -265,6 +265,53 @@ paths:
         "200":
           description: OK
       summary: ""
+  /v1/Bucket{BucketName}/Translate/{FileName}:
+    get:
+      operationId: get-v1-Bucket-BucketName-Translate-FileName
+      parameters:
+      - explode: false
+        in: path
+        name: BucketName
+        required: true
+        schema:
+          type: string
+        style: simple
+      - explode: false
+        in: path
+        name: FileName
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses: {}
+      summary: Your GET endpoint
+      tags: []
+    options:
+      operationId: options-v1-Bucket-BucketName-Translate-FileName
+      parameters:
+      - explode: false
+        in: path
+        name: BucketName
+        required: true
+        schema:
+          type: string
+        style: simple
+      - explode: false
+        in: path
+        name: FileName
+        required: true
+        schema:
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/options_v1_Bucket_BucketName_Translate_FileName_request'
+      responses:
+        "200":
+          description: OK
+      summary: ""
 components:
   parameters:
     FileName:
@@ -367,6 +414,13 @@ components:
       properties:
         data:
           format: binary
+          type: string
+      type: object
+    options_v1_Bucket_BucketName_Translate_FileName_request:
+      properties:
+        from:
+          type: string
+        to:
           type: string
       type: object
   securitySchemes:

@@ -63,6 +63,12 @@ func (c *DefaultApiController) Routes() Routes {
 			c.DeleteV1FileName,
 		},
 		{
+			"GetV1BucketBucketNameTranslateFileName",
+			strings.ToUpper("Get"),
+			"/v1/Bucket{BucketName}/Translate/{FileName}",
+			c.GetV1BucketBucketNameTranslateFileName,
+		},
+		{
 			"GetV1BucketName",
 			strings.ToUpper("Get"),
 			"/v1/Bucket/{BucketName}",
@@ -85,6 +91,12 @@ func (c *DefaultApiController) Routes() Routes {
 			strings.ToUpper("Get"),
 			"/v1/Bucket/{BucketName}/Files",
 			c.GetV1Files,
+		},
+		{
+			"OptionsV1BucketBucketNameTranslateFileName",
+			strings.ToUpper("Options"),
+			"/v1/Bucket{BucketName}/Translate/{FileName}",
+			c.OptionsV1BucketBucketNameTranslateFileName,
 		},
 		{
 			"OptionsV1BucketName",
@@ -165,6 +177,24 @@ func (c *DefaultApiController) DeleteV1FileName(w http.ResponseWriter, r *http.R
 
 }
 
+// GetV1BucketBucketNameTranslateFileName - Your GET endpoint
+func (c *DefaultApiController) GetV1BucketBucketNameTranslateFileName(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	bucketNameParam := params["BucketName"]
+	
+	fileNameParam := params["FileName"]
+	
+	result, err := c.service.GetV1BucketBucketNameTranslateFileName(r.Context(), bucketNameParam, fileNameParam)
+	// If an error occurred, encode the error with the status code
+	if err != nil {
+		c.errorHandler(w, r, err, &result)
+		return
+	}
+	// If no error, encode the body and the result code
+	EncodeJSONResponse(result.Body, &result.Code, w)
+
+}
+
 // GetV1BucketName - Your GET endpoint
 func (c *DefaultApiController) GetV1BucketName(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
@@ -218,6 +248,35 @@ func (c *DefaultApiController) GetV1Files(w http.ResponseWriter, r *http.Request
 	bucketNameParam := params["BucketName"]
 	
 	result, err := c.service.GetV1Files(r.Context(), bucketNameParam)
+	// If an error occurred, encode the error with the status code
+	if err != nil {
+		c.errorHandler(w, r, err, &result)
+		return
+	}
+	// If no error, encode the body and the result code
+	EncodeJSONResponse(result.Body, &result.Code, w)
+
+}
+
+// OptionsV1BucketBucketNameTranslateFileName - 
+func (c *DefaultApiController) OptionsV1BucketBucketNameTranslateFileName(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	bucketNameParam := params["BucketName"]
+	
+	fileNameParam := params["FileName"]
+	
+	optionsV1BucketBucketNameTranslateFileNameRequestParam := OptionsV1BucketBucketNameTranslateFileNameRequest{}
+	d := json.NewDecoder(r.Body)
+	d.DisallowUnknownFields()
+	if err := d.Decode(&optionsV1BucketBucketNameTranslateFileNameRequestParam); err != nil {
+		c.errorHandler(w, r, &ParsingError{Err: err}, nil)
+		return
+	}
+	if err := AssertOptionsV1BucketBucketNameTranslateFileNameRequestRequired(optionsV1BucketBucketNameTranslateFileNameRequestParam); err != nil {
+		c.errorHandler(w, r, err, nil)
+		return
+	}
+	result, err := c.service.OptionsV1BucketBucketNameTranslateFileName(r.Context(), bucketNameParam, fileNameParam, optionsV1BucketBucketNameTranslateFileNameRequestParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)

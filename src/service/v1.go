@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/binary"
 	"errors"
+	"fmt"
 	"github.com/scrapes/haw-cloudwp-openapi/src/commons"
 	"github.com/scrapes/haw-cloudwp-openapi/src/db"
 	"github.com/scrapes/haw-cloudwp-openapi/src/middleware"
@@ -12,6 +13,9 @@ import (
 	"log"
 	"net/http"
 	"os"
+
+	translate "cloud.google.com/go/translate/apiv3"
+	translatepb "cloud.google.com/go/translate/apiv3/translatepb"
 )
 
 func GetInternalServerError(err error) (openapi.ImplResponse, error) {
@@ -34,6 +38,57 @@ func GetNotFound() (openapi.ImplResponse, error) {
 
 type V1Service struct {
 	db *db.Connection
+}
+
+func (v *V1Service) GetV1BucketBucketNameTranslateFileName(ctxs context.Context, s string, s2 string) (openapi.ImplResponse, error) {
+	ctx := context.Background()
+	// This snippet has been automatically generated and should be regarded as a code template only.
+	// It will require modifications to work:
+	// - It may require correct/in-range values for request initialization.
+	// - It may require specifying regional endpoints when creating the service client as shown in:
+	//   https://pkg.go.dev/cloud.google.com/go#hdr-Client_Options
+	c, err := translate.NewTranslationClient(ctx)
+	if err != nil {
+		// TODO: Handle error.
+	}
+	defer c.Close()
+
+	req := &translatepb.TranslateDocumentRequest{
+		Parent:             fmt.Sprintf("projects/%s/locations/global", "664861925166"),
+		SourceLanguageCode: "de",
+		TargetLanguageCode: "en",
+		DocumentInputConfig: &translatepb.DocumentInputConfig{
+			Source: &translatepb.DocumentInputConfig_GcsSource{
+				GcsSource: &translatepb.GcsSource{
+					InputUri: fmt.Sprintf("gs://%s/%s", storage.GCLOUD_PROJECT_ID+"__"+s, s2),
+				},
+			},
+		},
+		DocumentOutputConfig: &translatepb.DocumentOutputConfig{
+			Destination: &translatepb.DocumentOutputConfig_GcsDestination{
+				GcsDestination: &translatepb.GcsDestination{
+					OutputUriPrefix: fmt.Sprintf("gs://%s/", storage.GCLOUD_PROJECT_ID+"__"+s),
+				},
+			},
+		},
+	}
+	resp, err := c.TranslateDocument(ctx, req)
+	if err != nil {
+		return GetInternalServerError(err)
+	}
+	info := resp.String()
+	return openapi.ImplResponse{
+		Code: http.StatusOK,
+		Body: struct {
+			Message string
+			Info    string
+		}{Message: "OK", Info: info},
+	}, nil
+}
+
+func (v *V1Service) OptionsV1BucketBucketNameTranslateFileName(ctx context.Context, s string, s2 string, request openapi.OptionsV1BucketBucketNameTranslateFileNameRequest) (openapi.ImplResponse, error) {
+	//TODO implement me
+	panic("implement me")
 }
 
 func (v *V1Service) getOrCreateUser(userID string) *db.User {
@@ -82,7 +137,6 @@ func (v *V1Service) DeleteV1FileName(ctx context.Context, bucketName string, fil
 	gStorage := new(storage.GCloudStorage).Init(perm)
 	bucket := new(commons.Bucket).Init(gStorage, bucketName)
 	objectToDelete := new(commons.Object).Init(bucket, fileName)
-	log.Println(bucketName, fileName)
 	err := objectToDelete.Delete()
 
 	if err != nil {

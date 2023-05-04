@@ -49,6 +49,14 @@ func (s *DefaultApiService) DeleteV1FileName(ctx context.Context, bucketName str
 	return Response(http.StatusNotImplemented, nil), errors.New("DeleteV1FileName method not implemented")
 }
 
+// GetV1BucketBucketNameTranslateFileName - Your GET endpoint
+func (s *DefaultApiService) GetV1BucketBucketNameTranslateFileName(ctx context.Context, bucketName string, fileName string) (ImplResponse, error) {
+	// TODO - update GetV1BucketBucketNameTranslateFileName with the required logic for this service method.
+	// Add api_default_service.go to the .openapi-generator-ignore to avoid overwriting this service implementation when updating open api generation.
+
+	return Response(http.StatusNotImplemented, nil), errors.New("GetV1BucketBucketNameTranslateFileName method not implemented")
+}
+
 // GetV1BucketName - Your GET endpoint
 func (s *DefaultApiService) GetV1BucketName(ctx context.Context, bucketName string) (ImplResponse, error) {
 	// TODO - update GetV1BucketName with the required logic for this service method.
@@ -94,6 +102,17 @@ func (s *DefaultApiService) GetV1Files(ctx context.Context, bucketName string) (
 	//return Response(200, []FileInfo{}), nil
 
 	return Response(http.StatusNotImplemented, nil), errors.New("GetV1Files method not implemented")
+}
+
+// OptionsV1BucketBucketNameTranslateFileName - 
+func (s *DefaultApiService) OptionsV1BucketBucketNameTranslateFileName(ctx context.Context, bucketName string, fileName string, optionsV1BucketBucketNameTranslateFileNameRequest OptionsV1BucketBucketNameTranslateFileNameRequest) (ImplResponse, error) {
+	// TODO - update OptionsV1BucketBucketNameTranslateFileName with the required logic for this service method.
+	// Add api_default_service.go to the .openapi-generator-ignore to avoid overwriting this service implementation when updating open api generation.
+
+	//TODO: Uncomment the next line to return response Response(200, {}) or use other options such as http.Ok ...
+	//return Response(200, nil),nil
+
+	return Response(http.StatusNotImplemented, nil), errors.New("OptionsV1BucketBucketNameTranslateFileName method not implemented")
 }
 
 // OptionsV1BucketName - 

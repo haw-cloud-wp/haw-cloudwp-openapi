@@ -11,6 +11,7 @@ go/model_bucket.go
 go/model_bucket_info.go
 go/model_file.go
 go/model_file_info.go
+go/model_options_v1_bucket_bucket_name_translate_file_name_request.go
 go/model_permission.go
 go/model_post_v1_bucket_name_request.go
 go/routers.go
