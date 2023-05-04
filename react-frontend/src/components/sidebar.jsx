@@ -6,14 +6,26 @@ import {auth0} from "../auth0";
 import {Link} from "react-router-dom";
 import {toggleTheme, updateTheme, isDark} from "../utils/theme";
 import {withAuth0} from "@auth0/auth0-react";
+import {PostV1BucketNameRequest} from "ts-cloudwpss23-openapi-cyan";
+import * as $ from "jquery";
+import {apiClient} from "../api";
+import {Bucket} from "ts-cloudwpss23-openapi-cyan";
 
 export const Sidebar = withAuth0(class Sidebar extends Component{
     constructor(params){
         super(params);
+        this.testCreateBucket = this.testCreateBucket.bind(this)
         this.state = {
             open: true,
             dark: isDark()
         }
+    }
+    testCreateBucket(e){
+        let req : PostV1BucketNameRequest = {name: "testbucket"};
+        $.when(apiClient.getV1Buckets()).then((status) => {
+            let buckets :Array<Bucket> = status.body;
+            console.log(buckets[0].name);
+        })
     }
     render() {
         return(
@@ -22,6 +34,7 @@ export const Sidebar = withAuth0(class Sidebar extends Component{
                     <Link to="/"><SidebarIcon onClick={() => {this.setState({open: !this.state.open});}} icon={faBurger} /></Link>
                     { this.props.auth0.isAuthenticated && (<Link to="/objectlist"><SidebarIcon icon={faFile} /></Link>)}
                     { this.props.auth0.isAuthenticated && (<SidebarIcon icon={faGear} />)}
+                    <SidebarIcon onClick={this.testCreateBucket} icon={faRightToBracket} />
                     <div className="grow" />
                     <SidebarIcon onClick={()=>{toggleTheme();this.setState({dark:isDark()});}} icon={ this.state.dark ? faSun: faMoon } />
                     { !this.props.auth0.isAuthenticated && ( <SidebarIcon onClick={() => this.props.auth0.loginWithRedirect({})} icon={faRightToBracket} /> )}

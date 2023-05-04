@@ -3,7 +3,7 @@ import {Button, Card, Dropdown, ListGroup, Pagination, Table} from "flowbite-rea
 import {ListGroupItem} from "flowbite-react/lib/esm/components/ListGroup/ListGroupItem";
 import {Auth0AddQue} from "../auth0";
 import {apiClient} from "../api";
-import {GetFiles200Response} from "ts-cloudwpss23-openapi-cyan";
+import {FileInfo as APIFileInfo} from "ts-cloudwpss23-openapi-cyan";
 import {FileInfo} from "ts-cloudwpss23-openapi-cyan";
 import * as $ from 'jquery';
 import {TableHead} from "flowbite-react/lib/esm/components/Table/TableHead";
@@ -23,8 +23,9 @@ export const ViewBucketList = withAuth0(class extends Component {
         this.onDropdownClick = this.onDropdownClick.bind(this)
         this.onUploadClick = this.onUploadClick.bind(this)
         this.updateFileList = this.updateFileList.bind(this)
+        let {Bucket} = props;
         this.state = {
-            Bucket: "",
+            Bucket: Bucket,
             Files: [],
             Folders: [],
             ItemsPerPage: 10,
@@ -37,12 +38,12 @@ export const ViewBucketList = withAuth0(class extends Component {
     updateFileList(){
         let parent = this;
         Auth0AddQue(() => {
-            $.when(apiClient.getFiles()).then(function (status) {
-                let response: GetFiles200Response = status.body;
-                let folders = response.files.filter((f) => f.size === undefined)
+            $.when(apiClient.getV1Files(parent.state.Bucket)).then(function (status) {
+                let response: Array<APIFileInfo> = status.body;
+                let folders = response.filter((f) => f.size === undefined)
                 folders = folders.map((f) => {f.size = 0; return f;})
-                let files = response.files.filter((f) => f.size > 0)
-                parent.setState({Bucket: response.bucket, Files: files, Folders: folders})
+                let files = response.filter((f) => f.size > 0)
+                parent.setState({Files: files, Folders: folders})
             })
         })
     }
@@ -58,7 +59,7 @@ export const ViewBucketList = withAuth0(class extends Component {
             list.setState({Uploading: true})
             fileHandles.forEach((fileHandle) => {
                 fileHandle.getFile().then((file) => {
-                    $.when(apiClient.putFileUpload(file.name, file)).then((response) => {
+                    $.when(apiClient.putV1FileName(list.state.Bucket, file.name, file)).then((response) => {
                         list.setState({Uploading: false})
                         list.updateFileList()
                     }, (reject) => {

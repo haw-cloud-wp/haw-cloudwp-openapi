@@ -38,7 +38,7 @@ function App() {
             <Routes>
                 <Route path="/">
                     <Route index={true} element={<PageHome />} />
-                    <Route path="/objectlist" element={<ViewBucketList />} />
+                    <Route path="/objectlist" element={<ViewBucketList Bucket="testbucket" />} />
                 </Route>
             </Routes>
         </div>

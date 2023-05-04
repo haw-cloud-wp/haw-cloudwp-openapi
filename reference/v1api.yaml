@@ -30,7 +30,7 @@ paths:
       responses:
         '200':
           description: OK
-  '/v1/Bucket/{name}':
+  '/v1/Bucket/{BucketName}':
     parameters:
       - $ref: '#/components/parameters/BucketName'
     get:
@@ -118,7 +118,7 @@ paths:
           description: OK
     parameters:
       - $ref: '#/components/parameters/BucketName'
-  '/v1/Bucket/{bucketname}/File/{filename}':
+  '/v1/Bucket/{BucketName}/File/{FileName}':
     parameters:
       - $ref: '#/components/parameters/BucketName'
       - $ref: '#/components/parameters/FileName'

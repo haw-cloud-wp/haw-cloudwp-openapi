@@ -10,15 +10,42 @@ import (
 	"os"
 )
 
+type overrideRoute struct {
+	Name string
+	Func http.HandlerFunc
+}
+
 type V1Controller struct {
-	openapi.DefaultApiController
+	Default    openapi.Router
 	ErrHandler openapi.ErrorHandler
 	Service    openapi.DefaultApiServicer
+}
+
+func (c *V1Controller) Routes() openapi.Routes {
+	routes := c.Default.Routes()
+	overrideRoutes := []overrideRoute{
+		{
+			Name: "GetV1FileName",
+			Func: c.GetV1FileName,
+		},
+	}
+
+	for _, route := range overrideRoutes {
+		for i, defaultRoute := range routes {
+			if route.Name == defaultRoute.Name {
+				routes[i].HandlerFunc = route.Func
+				break
+			}
+		}
+	}
+
+	return routes
 }
 
 func (c *V1Controller) Init(service openapi.DefaultApiServicer) *V1Controller {
 	c.ErrHandler = openapi.DefaultErrorHandler
 	c.Service = service
+	c.Default = openapi.NewDefaultApiController(service)
 	return c
 }
 

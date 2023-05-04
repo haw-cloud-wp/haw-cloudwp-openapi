@@ -16,6 +16,7 @@ import (
 type CustomClaims struct {
 	Scope       string   `json:"scope"`
 	Permissions []string `json:"permissions"`
+	UserID      string   `json:"sub"`
 }
 
 func (c CustomClaims) Init(claims CustomClaims) CustomClaims {
@@ -100,7 +101,6 @@ func EnsureValidToken(auth0Domain string, auth0Audience string) func(next http.H
 	)
 
 	return func(next http.Handler) http.Handler {
-
 		return middleware.CheckJWT(next)
 	}
 }

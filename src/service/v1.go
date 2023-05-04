@@ -5,11 +5,13 @@ import (
 	"encoding/binary"
 	"errors"
 	"github.com/scrapes/haw-cloudwp-openapi/src/commons"
+	"github.com/scrapes/haw-cloudwp-openapi/src/db"
 	"github.com/scrapes/haw-cloudwp-openapi/src/middleware"
 	"github.com/scrapes/haw-cloudwp-openapi/src/storage"
 	openapi "github.com/scrapes/haw-cloudwp-openapi/src/v1/go"
 	"net/http"
 	"os"
+	"strconv"
 )
 
 func GetInternalServerError(err error) (openapi.ImplResponse, error) {
@@ -22,6 +24,22 @@ func GetInternalServerError(err error) (openapi.ImplResponse, error) {
 }
 
 type V1Service struct {
+	db *db.Connection
+}
+
+func (v *V1Service) getOrCreateUser(userID string) *db.User {
+	dbUser := new(db.User)
+	rows := v.db.DB.Model(dbUser).Preload("Access").First(dbUser, "auth0_id = ?", userID)
+	if !(rows.RowsAffected > 0) {
+		dbUser.Auth0ID = userID
+		dbUser.Access = make([]db.Bucket, 0)
+		v.db.DB.Create(dbUser)
+	}
+	return dbUser
+}
+
+func (v *V1Service) SetDB(db *db.Connection) {
+	v.db = db
 }
 
 func (v *V1Service) DeleteV1BucketName(ctx context.Context, bucketName string) (openapi.ImplResponse, error) {
@@ -85,8 +103,20 @@ func (v *V1Service) GetV1BucketName(ctx context.Context, bucketName string) (ope
 }
 
 func (v *V1Service) GetV1Buckets(ctx context.Context) (openapi.ImplResponse, error) {
-	//TODO implement me
-	panic("implement me")
+	_, cc := middleware.GetToken(ctx)
+	user := v.getOrCreateUser(cc.UserID)
+	var response []openapi.Bucket
+	for _, bucket := range user.Access {
+		response = append(response, openapi.Bucket{
+			Id:   strconv.Itoa(int(bucket.ID)),
+			Name: bucket.Name,
+		})
+	}
+
+	return openapi.ImplResponse{
+		Code: http.StatusOK,
+		Body: response,
+	}, nil
 }
 
 func (v *V1Service) GetV1FileName(ctx context.Context, s string, s2 string) (openapi.ImplResponse, error) {
@@ -148,9 +178,29 @@ func (v *V1Service) PatchV1BucketName(ctx context.Context, s string, permissions
 	panic("implement me")
 }
 
+// Create Bucket
 func (v *V1Service) PostV1BucketName(ctx context.Context, s string, request openapi.PostV1BucketNameRequest) (openapi.ImplResponse, error) {
-	//TODO implement me
-	panic("implement me")
+	_, cc := middleware.GetToken(ctx)
+	gstore := new(storage.GCloudStorage).Init(new(commons.ClaimsPermissionHandler).Init(cc))
+	err, _ := gstore.CreateBucket(request.Name)
+	if err != nil {
+		return GetInternalServerError(err)
+	}
+
+	dbBucket := new(db.Bucket)
+	dbBucket.Name = request.Name
+	v.db.DB.Create(dbBucket)
+
+	dbUser := v.getOrCreateUser(cc.UserID)
+	dbUser.Access = append(dbUser.Access, *dbBucket)
+	v.db.DB.Updates(dbUser)
+
+	return openapi.ImplResponse{
+		Code: http.StatusOK,
+		Body: struct {
+			Message string
+		}{Message: "OK"},
+	}, nil
 }
 
 func (v *V1Service) PutV1FileName(ctx context.Context, s string, s2 string, file *os.File) (openapi.ImplResponse, error) {

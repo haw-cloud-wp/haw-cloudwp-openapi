@@ -12,6 +12,10 @@ import (
 	"time"
 )
 
+const (
+	GCLOUD_PROJECT_ID = "subtle-digit-382316"
+)
+
 type GCloudStorage struct {
 	permissions commons.IPermission
 	ctx         context.Context
@@ -54,8 +58,11 @@ func (G *GCloudStorage) DeleteBucket(bucket commons.IBucket) error {
 }
 
 func (G *GCloudStorage) CreateBucket(name string) (error, commons.IBucket) {
-	//TODO implement me
-	panic("implement me")
+	err := G.client.Bucket(GCLOUD_PROJECT_ID+"__"+name).Create(G.ctx, GCLOUD_PROJECT_ID, nil)
+	if err != nil {
+		return err, nil
+	}
+	return nil, new(commons.Bucket).Init(G, name)
 }
 
 func (G *GCloudStorage) GetObjects(bucket commons.IBucket) (error, []commons.IObjectInfo) {
@@ -63,7 +70,7 @@ func (G *GCloudStorage) GetObjects(bucket commons.IBucket) (error, []commons.IOb
 	ctx, cancel := context.WithTimeout(G.ctx, time.Second*10)
 	defer cancel()
 
-	it := G.client.Bucket(bucket.GetName()).Objects(ctx, nil)
+	it := G.client.Bucket(GCLOUD_PROJECT_ID+"__"+bucket.GetName()).Objects(ctx, nil)
 	var objects []commons.IObjectInfo
 	for {
 		attrs, err := it.Next()
@@ -92,7 +99,7 @@ func (G *GCloudStorage) GetObject(bucket commons.IBucket, object commons.IObject
 	if err != nil {
 		return err, nil
 	}
-	obj := G.client.Bucket(bucket.GetName()).Object(object.GetName())
+	obj := G.client.Bucket(GCLOUD_PROJECT_ID + "__" + bucket.GetName()).Object(object.GetName())
 	r, err := obj.NewReader(G.ctx)
 	if err != nil {
 		return err, nil
@@ -131,7 +138,7 @@ func (G *GCloudStorage) SetObject(bucket commons.IBucket, object commons.IObject
 	ctx, cancel := context.WithTimeout(ctx, time.Second*50)
 	defer cancel()
 
-	o := client.Bucket(bucket.GetName()).Object(object.GetName())
+	o := client.Bucket(GCLOUD_PROJECT_ID + "__" + bucket.GetName()).Object(object.GetName())
 
 	o = o.If(storage.Conditions{DoesNotExist: true})
 

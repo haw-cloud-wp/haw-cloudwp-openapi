@@ -12,6 +12,8 @@ package main
 import (
 	"github.com/gorilla/handlers"
 	controller2 "github.com/scrapes/haw-cloudwp-openapi/src/controller"
+	"github.com/scrapes/haw-cloudwp-openapi/src/db"
+	"github.com/scrapes/haw-cloudwp-openapi/src/middleware"
 	"github.com/scrapes/haw-cloudwp-openapi/src/service"
 	openapi "github.com/scrapes/haw-cloudwp-openapi/src/v1/go"
 	"log"
@@ -45,7 +47,17 @@ func main() {
 		corsOrigins = "http://localhost:3000,https://app.cloudwp.anwski.de,https://api.cloudwp.anwski.de"
 	}
 
+	sqldb, err := db.GoogleConnectWithConnector()
+
+	if err != nil {
+		log.Printf(err.Error())
+		os.Exit(-1)
+	}
+
+	gormDB := new(db.Connection).Init(sqldb)
+
 	s := new(service.V1Service)
+	s.SetDB(gormDB)
 	controller := new(controller2.V1Controller).Init(s)
 	allowedOrigins := strings.Split(corsOrigins, ",")
 
@@ -58,7 +70,7 @@ func main() {
 		handlers.AllowedMethods([]string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"}),
 	))
 
-	//router.Use(middleware.EnsureValidToken(auth0Domain, auth0Audience))
+	router.Use(middleware.EnsureValidToken(auth0Domain, auth0Audience))
 
 	log.Fatal(http.ListenAndServe(":"+port, router))
 }
