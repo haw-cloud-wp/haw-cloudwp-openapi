@@ -107,6 +107,10 @@ func (v *V1Service) SetDB(db *db.Connection) {
 	v.db = db
 }
 
+func (v *V1Service) SetStorage(store commons.IStorage) {
+	v.storage = store
+}
+
 func (v *V1Service) DeleteV1BucketName(ctx context.Context, bucketName string) (openapi.ImplResponse, error) {
 	_, cc := middleware.GetToken(ctx)
 	permission := new(commons.AllowAllPermission).Init(cc)

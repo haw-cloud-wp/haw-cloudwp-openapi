@@ -106,31 +106,37 @@ export const Filelist = withAuth0(class extends Component {
         fstate[filename].Translate = translating
         this.setState({FileState: fstate})
     }
-
+/// <reference types="node" />
     downloadFile(filename){
         let list = this;
         list.setFileDownloadState(filename, true)
-        $.when(apiClient.getV1FileName(list.state.Bucket, filename)).then((state) => {
-            let blob :File = state.body;
-            // Create blob link to download
-            const url = window.URL.createObjectURL(
-                new Blob([blob]),
-            );
-            const link = document.createElement('a');
-            link.href = url;
-            link.setAttribute(
-                'download',
-                filename,
-            );
+        let setting : JQueryAjaxSettings = {
+            xhrFields: {
+                responseType: 'blob'
+            }
+        };
+        $.when(apiClient.getV1FileName(list.state.Bucket, filename, setting)).then((resp) => {
+            //Convert the Byte Data to BLOB object.
+            let data = resp.body
+            let type = resp.response.getResponseHeader('Content-Type');
+            let blob = new Blob([data], { type: type });
+            debugger;
 
-            // Append to html link element page
-            document.body.appendChild(link);
+            //Check the Browser type and download the File.
+            let isIE = false || !!document.documentMode;
+            if (isIE) {
+                window.navigator.msSaveBlob(blob, filename);
+            } else {
+                let url = window.URL || window.webkitURL;
+                let link = url.createObjectURL(blob);
+                let a = $("<a />");
+                a.attr("download", filename);
+                a.attr("href", link);
+                $("body").append(a);
+                a[0].click();
+                $("body").remove(a);
+            }
 
-            // Start download
-            link.click();
-
-            // Clean up and remove the link
-            link.parentNode.removeChild(link);
             list.setFileDownloadState(filename, false)
         })
     }
@@ -235,7 +241,7 @@ export const Filelist = withAuth0(class extends Component {
                         if((index >= ((this.state.CurrentPage-1) * this.state.ItemsPerPage)) &&
                             index < this.state.CurrentPage * this.state.ItemsPerPage){
                             let isFolder = file.size === 0;
-                            let isPDF = file.file.name.endsWith(".pdf") || file.file.name.endsWith(".docx")
+                            let isPDF = file.file.name.endsWith(".pdf") || file.file.name.endsWith(".docx") || file.file.name.endsWith(".txt")
                             let icon = isFolder ? faFolder : faFile
                         return (
                             <TableRow>

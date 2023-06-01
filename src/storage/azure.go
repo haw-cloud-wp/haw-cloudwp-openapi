@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	URL = "HIER BLOB SERVICE URL" //@TODO
+	URL = "https://cloudwp.blob.core.windows.net" //@TODO
 )
 
 type AzureStorage struct {

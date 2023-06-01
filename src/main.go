@@ -57,14 +57,15 @@ func main() {
 	if auth0Domain == "" {
 		auth0Domain = "dev-5n5igzycxiz22p3w.us.auth0.com"
 	}
-
+	log.Println("Auth0Domain: ", auth0Domain)
 	if auth0Audience == "" {
 		auth0Audience = "http://localhost:3001"
 	}
-
+	log.Println("Auth0Audience: ", auth0Audience)
 	if corsOrigins == "" {
-		corsOrigins = "http://localhost:3000,https://app.cloudwp.anwski.de,https://api.cloudwp.anwski.de"
+		corsOrigins = "http://localhost:3000,https://app.cloudwp.anwski.de,https://api.cloudwp.anwski.de,https://cloudwp-frontend.azurewebsites.net"
 	}
+	log.Println("CORS Origins: ", corsOrigins)
 
 	if isNotAzure {
 		log.Println("Is Not Azure!")
@@ -90,6 +91,7 @@ func main() {
 
 	log.Println("Init gorm...")
 	s := new(service.V1Service)
+	s.SetStorage(store)
 	s.SetDB(dbcn)
 	controller := new(controller2.V1Controller).Init(s, store)
 	allowedOrigins := strings.Split(corsOrigins, ",")
