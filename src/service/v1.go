@@ -50,6 +50,13 @@ type V1Service struct {
 	isAzure bool
 }
 
+func (v *V1Service) Init(db *db.Connection, store commons.IStorage, isAzure bool) *V1Service {
+	v.db = db
+	v.storage = store
+	v.isAzure = isAzure
+	return v
+}
+
 func (v *V1Service) GetV1BucketBucketNameTranslateFileName(ctxs context.Context, s string, s2 string) (openapi.ImplResponse, error) {
 	if !v.isAzure {
 		ctx := context.Background()

@@ -97,9 +97,7 @@ func main() {
 	}
 
 	log.Println("Init gorm...")
-	s := new(service.V1Service)
-	s.SetStorage(store)
-	s.SetDB(dbcn)
+	s := new(service.V1Service).Init(dbcn, store, !isNotAzure)
 	controller := new(controller2.V1Controller).Init(s, store)
 	allowedOrigins := strings.Split(corsOrigins, ",")
 
