@@ -39,7 +39,10 @@ var store commons.IStorage
 func main() {
 	log.Printf("Server started")
 	pdbpass := flag.String("dbpassword", "", "")
+	azureapim := flag.String("apimkey", "", "")
 	flag.Parse()
+
+	service.APIMKEY = *azureapim
 
 	port := os.Getenv("PORT")
 	if port == "" {
