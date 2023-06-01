@@ -140,7 +140,7 @@ func (v *V1Service) GetV1BucketBucketNameTranslateFileName(ctxs context.Context,
 		}
 		targetsasURL := fmt.Sprintf("https://%s.blob.core.windows.net/?%s", accountName, targetSASParams.Encode())
 
-		httpposturl := "https://cloudwp.cognitiveservices.azure.com/translator/text/batch/v1.0/batches"
+		httpposturl := "https://cloudwp2.cognitiveservices.azure.com/translator/text/batch/v1.0/batches"
 		fmt.Println("Response", httpposturl)
 
 		var jsonData = []byte(fmt.Sprintf(`{
