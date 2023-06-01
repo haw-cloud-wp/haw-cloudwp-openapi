@@ -85,6 +85,10 @@ func main() {
 		if err != nil {
 			log.Fatal("Error creating connection pool: ", err.Error())
 		}
+		err = gormDB.AutoMigrate(db.ModelList...)
+		if err != nil {
+			log.Println("Error on Gorm Automigrate: ", err.Error())
+		}
 		dbcn.DB = gormDB
 		store = new(storage.AzureStorage)
 	}
