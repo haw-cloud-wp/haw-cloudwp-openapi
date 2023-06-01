@@ -18,6 +18,7 @@ type V1Controller struct {
 	Default    openapi.Router
 	ErrHandler openapi.ErrorHandler
 	Service    openapi.DefaultApiServicer
+	Storage    commons.IStorage
 }
 
 func (c *V1Controller) Routes() openapi.Routes {
@@ -41,10 +42,11 @@ func (c *V1Controller) Routes() openapi.Routes {
 	return routes
 }
 
-func (c *V1Controller) Init(service openapi.DefaultApiServicer) *V1Controller {
+func (c *V1Controller) Init(service openapi.DefaultApiServicer, store commons.IStorage) *V1Controller {
 	c.ErrHandler = openapi.DefaultErrorHandler
 	c.Service = service
 	c.Default = openapi.NewDefaultApiController(service)
+	c.Storage = store
 	return c
 }
 
@@ -53,9 +55,8 @@ func (c *V1Controller) GetV1FileName(w http.ResponseWriter, r *http.Request) {
 	bucketNameParam := params["BucketName"]
 
 	fileNameParam := params["FileName"]
-	//_, cc := middleware.GetToken(r.Context())
-	cstore := new(storage.GCloudStorage).Init(new(commons.AllowAllPermission).Init(nil))
-	bucket := new(commons.Bucket).Init(cstore, bucketNameParam)
+	_, _ = middleware.GetToken(r.Context())
+	bucket := new(commons.Bucket).Init(c.Storage, bucketNameParam)
 	obj := new(commons.Object).Init(bucket, fileNameParam)
 
 	err, dataFile := obj.Get()

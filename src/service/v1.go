@@ -37,7 +37,8 @@ func GetNotFound() (openapi.ImplResponse, error) {
 }
 
 type V1Service struct {
-	db *db.Connection
+	db      *db.Connection
+	storage commons.IStorage
 }
 
 func (v *V1Service) GetV1BucketBucketNameTranslateFileName(ctxs context.Context, s string, s2 string) (openapi.ImplResponse, error) {
@@ -109,7 +110,7 @@ func (v *V1Service) SetDB(db *db.Connection) {
 func (v *V1Service) DeleteV1BucketName(ctx context.Context, bucketName string) (openapi.ImplResponse, error) {
 	_, cc := middleware.GetToken(ctx)
 	permission := new(commons.AllowAllPermission).Init(cc)
-	gStorage := new(storage.GCloudStorage).Init(permission)
+	gStorage := v.storage.Init(permission)
 	bucketToDelete := new(commons.Bucket).Init(gStorage, bucketName)
 	err := bucketToDelete.Delete()
 
@@ -134,7 +135,7 @@ func (v *V1Service) DeleteV1BucketName(ctx context.Context, bucketName string) (
 func (v *V1Service) DeleteV1FileName(ctx context.Context, bucketName string, fileName string) (openapi.ImplResponse, error) {
 	_, cc := middleware.GetToken(ctx)
 	perm := new(commons.AllowAllPermission).Init(cc)
-	gStorage := new(storage.GCloudStorage).Init(perm)
+	gStorage := v.storage.Init(perm)
 	bucket := new(commons.Bucket).Init(gStorage, bucketName)
 	objectToDelete := new(commons.Object).Init(bucket, fileName)
 	err := objectToDelete.Delete()
@@ -155,7 +156,7 @@ func (v *V1Service) DeleteV1FileName(ctx context.Context, bucketName string, fil
 func (v *V1Service) GetV1BucketName(ctx context.Context, bucketName string) (openapi.ImplResponse, error) {
 	_, cc := middleware.GetToken(ctx)
 	permission := new(commons.AllowAllPermission).Init(cc)
-	gStorage := new(storage.GCloudStorage).Init(permission)
+	gStorage := v.storage.Init(permission)
 	bucket := new(commons.Bucket).Init(gStorage, bucketName)
 	name := bucket.GetName()
 
@@ -203,7 +204,7 @@ func (v *V1Service) GetV1Files(ctx context.Context, bucketName string) (openapi.
 	_, cc := middleware.GetToken(ctx)
 	log.Println(bucketName)
 	permission := new(commons.AllowAllPermission).Init(cc)
-	gStorage := new(storage.GCloudStorage).Init(permission)
+	gStorage := v.storage.Init(permission)
 	bucket := new(commons.Bucket).Init(gStorage, bucketName)
 	err, files := bucket.GetObjects()
 	if err != nil {
@@ -256,7 +257,7 @@ func (v *V1Service) PatchV1BucketName(ctx context.Context, s string, permissions
 // Create Bucket
 func (v *V1Service) PostV1BucketName(ctx context.Context, s string, request openapi.PostV1BucketNameRequest) (openapi.ImplResponse, error) {
 	_, cc := middleware.GetToken(ctx)
-	gstore := new(storage.GCloudStorage).Init(new(commons.AllowAllPermission).Init(cc))
+	gstore := v.storage.Init(new(commons.AllowAllPermission).Init(cc))
 	err, _ := gstore.CreateBucket(request.Name)
 	if err != nil {
 		return GetInternalServerError(err)
@@ -280,7 +281,7 @@ func (v *V1Service) PostV1BucketName(ctx context.Context, s string, request open
 
 func (v *V1Service) PutV1FileName(ctx context.Context, s string, s2 string, file *os.File) (openapi.ImplResponse, error) {
 	_, cc := middleware.GetToken(ctx)
-	store := new(storage.GCloudStorage).Init(new(commons.AllowAllPermission).Init(cc))
+	store := v.storage.Init(new(commons.AllowAllPermission).Init(cc))
 	bucket := new(commons.Bucket).Init(store, s)
 	obj := new(commons.Object).Init(bucket, s2)
 	f, err := os.Open(file.Name())

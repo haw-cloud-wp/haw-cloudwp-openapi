@@ -14,10 +14,12 @@ import (
 	"fmt"
 	"github.com/gorilla/handlers"
 	_ "github.com/microsoft/go-mssqldb"
+	"github.com/scrapes/haw-cloudwp-openapi/src/commons"
 	controller2 "github.com/scrapes/haw-cloudwp-openapi/src/controller"
 	"github.com/scrapes/haw-cloudwp-openapi/src/db"
 	"github.com/scrapes/haw-cloudwp-openapi/src/middleware"
 	"github.com/scrapes/haw-cloudwp-openapi/src/service"
+	"github.com/scrapes/haw-cloudwp-openapi/src/storage"
 	openapi "github.com/scrapes/haw-cloudwp-openapi/src/v1/go"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -72,6 +74,7 @@ func main() {
 			os.Exit(-1)
 		}
 		dbcn.Init(connector)
+		store = new(storage.GCloudStorage)
 	} else {
 		log.Println("ITS AZURE!! :)")
 		var err error
@@ -82,12 +85,13 @@ func main() {
 			log.Fatal("Error creating connection pool: ", err.Error())
 		}
 		dbcn.DB = gormDB
+		store = new(storage.AzureStorage)
 	}
 
 	log.Println("Init gorm...")
 	s := new(service.V1Service)
 	s.SetDB(dbcn)
-	controller := new(controller2.V1Controller).Init(s)
+	controller := new(controller2.V1Controller).Init(s, store)
 	allowedOrigins := strings.Split(corsOrigins, ",")
 
 	router := openapi.NewRouter(controller)
