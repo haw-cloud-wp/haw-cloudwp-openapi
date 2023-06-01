@@ -32,6 +32,7 @@ var server = "cloudwp.mysql.database.azure.com"
 var dbport = 3306
 var user = "cloudwp"
 var database = "cloudwpsql"
+var store commons.IStorage
 
 func main() {
 	log.Printf("Server started")

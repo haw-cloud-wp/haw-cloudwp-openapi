@@ -3,9 +3,10 @@ package controller
 import (
 	"github.com/gorilla/mux"
 	"github.com/scrapes/haw-cloudwp-openapi/src/commons"
-	"github.com/scrapes/haw-cloudwp-openapi/src/storage"
+	"github.com/scrapes/haw-cloudwp-openapi/src/middleware"
 	openapi "github.com/scrapes/haw-cloudwp-openapi/src/v1/go"
 	"net/http"
+	"os"
 )
 
 type overrideRoute struct {
@@ -68,5 +69,5 @@ func (c *V1Controller) GetV1FileName(w http.ResponseWriter, r *http.Request) {
 	}
 
 	http.ServeFile(w, r, dataFile.Name())
-	//os.Remove(dataFile.Name())
+	os.Remove(dataFile.Name())
 }
