@@ -10,26 +10,42 @@
 package main
 
 import (
+	"flag"
+	"fmt"
 	"github.com/gorilla/handlers"
+	_ "github.com/microsoft/go-mssqldb"
 	controller2 "github.com/scrapes/haw-cloudwp-openapi/src/controller"
 	"github.com/scrapes/haw-cloudwp-openapi/src/db"
 	"github.com/scrapes/haw-cloudwp-openapi/src/middleware"
 	"github.com/scrapes/haw-cloudwp-openapi/src/service"
 	openapi "github.com/scrapes/haw-cloudwp-openapi/src/v1/go"
+	"gorm.io/driver/mysql"
+	"gorm.io/gorm"
 	"log"
 	"net/http"
 	"os"
 	"strings"
 )
 
+var dbcn = new(db.Connection)
+var server = "cloudwp.mysql.database.azure.com"
+var dbport = 3306
+var user = "cloudwp"
+var database = "cloudwpsql"
+
 func main() {
 	log.Printf("Server started")
+	pdbpass := flag.String("dbpassword", "", "")
+	flag.Parse()
 
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "80"
 		log.Printf("defaulting to port %s", port)
 	}
+
+	password := *pdbpass
+	isNotAzure := password == ""
 
 	auth0Domain := os.Getenv("AUTH0_DOMAIN")
 	auth0Audience := os.Getenv("AUTH0_AUDIENCE")
@@ -47,17 +63,29 @@ func main() {
 		corsOrigins = "http://localhost:3000,https://app.cloudwp.anwski.de,https://api.cloudwp.anwski.de"
 	}
 
-	sqldb, err := db.GoogleConnectWithConnector()
-
-	if err != nil {
-		log.Printf(err.Error())
-		os.Exit(-1)
+	if isNotAzure {
+		log.Println("Is Not Azure!")
+		connector, err := db.GoogleConnectWithConnector()
+		if err != nil {
+			log.Printf(err.Error())
+			os.Exit(-1)
+		}
+		dbcn.Init(connector)
+	} else {
+		log.Println("ITS AZURE!! :)")
+		var err error
+		// Create connection pool
+		dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=Local", user, password, server, dbport, database)
+		gormDB, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
+		if err != nil {
+			log.Fatal("Error creating connection pool: ", err.Error())
+		}
+		dbcn.DB = gormDB
 	}
 
-	gormDB := new(db.Connection).Init(sqldb)
-
+	log.Println("Init gorm...")
 	s := new(service.V1Service)
-	s.SetDB(gormDB)
+	s.SetDB(dbcn)
 	controller := new(controller2.V1Controller).Init(s)
 	allowedOrigins := strings.Split(corsOrigins, ",")
 

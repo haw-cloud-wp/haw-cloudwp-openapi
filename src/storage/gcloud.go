@@ -103,23 +103,17 @@ func (G *GCloudStorage) GetObject(bucket commons.IBucket, object commons.IObject
 	if err != nil {
 		return err, nil
 	}
-	buff := make([]byte, 4096)
-	for {
-		n, err := r.Read(buff)
-		if err != nil && err != io.EOF {
-			return err, nil
-		}
-		if n == 0 {
-			break
-		}
-
-		// write a chunk
-		if _, err := file.Write(buff[:n]); err != nil {
-			return err, nil
-		}
+	n, err := io.Copy(file, r)
+	if err != nil {
+		file.Close()
+		os.Remove(file.Name())
+		return err, nil
 	}
 
+	log.Printf("Wrote ", n, " bytes")
+
 	err = file.Close()
+	log.Println(file.Name())
 	if err != nil {
 		return err, nil
 	}

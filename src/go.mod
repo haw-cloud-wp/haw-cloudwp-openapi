@@ -10,9 +10,11 @@ require (
 	github.com/go-sql-driver/mysql v1.7.0
 	github.com/gorilla/handlers v1.5.1
 	github.com/gorilla/mux v1.7.3
+	github.com/microsoft/go-mssqldb v1.0.0
 	google.golang.org/api v0.117.0
 	gorm.io/driver/mysql v1.5.0
-	gorm.io/gorm v1.25.0
+	gorm.io/driver/sqlserver v1.5.0
+	gorm.io/gorm v1.25.1
 )
 
 require (
@@ -22,6 +24,8 @@ require (
 	cloud.google.com/go/iam v0.13.0 // indirect
 	cloud.google.com/go/longrunning v0.4.1 // indirect
 	github.com/felixge/httpsnoop v1.0.1 // indirect
+	github.com/golang-sql/civil v0.0.0-20220223132316-b832511892a9 // indirect
+	github.com/golang-sql/sqlexp v0.1.0 // indirect
 	github.com/golang/groupcache v0.0.0-20200121045136-8c9f03a8e57e // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/google/go-cmp v0.5.9 // indirect
